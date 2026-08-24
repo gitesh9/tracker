@@ -1,23 +1,11 @@
 /**
  * Single registrar for the app-shell service worker.
- * Never registers in dev, in the Lovable preview, inside an iframe, or with ?sw=off.
+ * Never registers in dev, inside an iframe, or with ?sw=off.
  */
-const BLOCKED_SUFFIXES = [
-  ".lovableproject.com",
-  ".lovableproject-dev.com",
-  ".beta.lovable.dev",
-];
-
-const BLOCKED_HOSTS = ["lovableproject.com", "lovableproject-dev.com", "beta.lovable.dev"];
-
 function isBlockedContext(): boolean {
   if (typeof window === "undefined") return true;
   if (!import.meta.env.PROD) return true;
   if (window.self !== window.top) return true;
-  const host = window.location.hostname;
-  if (host.startsWith("id-preview--") || host.startsWith("preview--")) return true;
-  if (BLOCKED_HOSTS.includes(host)) return true;
-  if (BLOCKED_SUFFIXES.some((suffix) => host.endsWith(suffix))) return true;
   if (new URLSearchParams(window.location.search).get("sw") === "off") return true;
   return false;
 }

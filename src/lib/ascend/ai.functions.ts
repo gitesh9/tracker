@@ -4,10 +4,11 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 const MODEL = "google/gemini-3.5-flash";
 
 async function callGateway(system: string, prompt: string): Promise<string> {
-  const apiKey = process.env["LOVABLE_API_KEY"];
-  if (!apiKey) throw new Error("AI is not configured");
+  const apiKey = process.env["AI_API_KEY"];
+  const baseUrl = process.env["AI_BASE_URL"] ?? "https://generativelanguage.googleapis.com/v1beta/openai";
+  if (!apiKey) throw new Error("AI is not configured — set AI_API_KEY env var");
 
-  const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+  const res = await fetch(`${baseUrl}/chat/completions`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
