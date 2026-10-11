@@ -6,6 +6,7 @@ export interface ParsedTask {
   title: string;
   icon_name: string;
   domain: Domain;
+  categories: string[];
   priority: "low" | "medium" | "high";
   energy_level: "low" | "medium" | "high";
   frequency_type: "once" | "daily" | "weekly_count" | "weekdays";
@@ -38,18 +39,51 @@ const DAY_MAP: Record<string, number> = {
 };
 
 const DOMAIN_PATTERNS: [RegExp, Domain][] = [
-  [/gym|run|walk|health|sleep|water|eat|yoga|steps|workout|stretch/i, "health"],
-  [/work|career|interview|client|resume|certif|course|study|code|project/i, "career"],
-  [/meditat|journal|gratitude|mindful|breath|therapy|read/i, "mindset"],
-  [/focus|deep work|pomodoro|distraction/i, "focus"],
+  [
+    /gym|run|walk|health|sleep|water|eat|yoga|steps|workout|stretch|lift|nutrition|cardio|recovery|mobility/i,
+    "health",
+  ],
+  [
+    /work|career|interview|client|resume|job|meeting|presentation|leadership|strategy|execute|coding|program/i,
+    "career",
+  ],
+  [/meditat|journal|gratitude|mindful|breath|therapy|reflect|calm|zen|stoic/i, "mindset"],
+  [/money|budget|save|invest|finance|expense|crypto|stock|income|bill|tax/i, "finance"],
+  [
+    /study|learn|course|lecture|language|spanish|french|german|vocab|research|exam|class|reading|book/i,
+    "learning",
+  ],
+  [
+    /write|art|paint|draw|design|music|guitar|piano|song|compose|sketch|creative|prototype|side project/i,
+    "creativity",
+  ],
+  [
+    /family|friend|mentor|call mom|call dad|date night|reconnect|catch up|community|partner|relationship/i,
+    "relationships",
+  ],
+  [/focus|deep work|pomodoro|distraction|sprint|declutter|admin|priorit/i, "focus"],
 ];
 
 export function parseQuickAdd(input: string): ParsedTask {
   let text = ` ${input.trim()} `;
   const hints: string[] = [];
+  const extractedCategories: string[] = [];
+
   const strip = (re: RegExp) => {
     text = text.replace(re, " ");
   };
+
+  // Hashtag categories (#health, #focus, #coding)
+  const tagMatches = [...text.matchAll(/#([a-zA-Z0-9_-]+)/g)];
+  for (const m of tagMatches) {
+    if (m[1]) {
+      const cat = m[1].toLowerCase();
+      if (!extractedCategories.includes(cat)) {
+        extractedCategories.push(cat);
+      }
+      strip(new RegExp(escape(m[0]!), "g"));
+    }
+  }
 
   // Frequency: "3x per week", "3x a week", "3 times a week"
   let frequency_type: ParsedTask["frequency_type"] = "once";
@@ -67,9 +101,17 @@ export function parseQuickAdd(input: string): ParsedTask {
     hints.push("Daily");
     strip(/\b(every ?day|daily)\b/i);
   } else {
-    const dayMatches = [...text.matchAll(/\b(sun|mon|tue|tues|wed|weds|thu|thur|thurs|fri|sat)(day|nesday|rsday|urday|sday)?\b/gi)];
+    const dayMatches = [
+      ...text.matchAll(
+        /\b(sun|mon|tue|tues|wed|weds|thu|thur|thurs|fri|sat)(day|nesday|rsday|urday|sday)?\b/gi,
+      ),
+    ];
     if (dayMatches.length > 0) {
-      weekdays = [...new Set(dayMatches.map((m) => DAY_MAP[m[0]!.toLowerCase()]!).filter((d) => d !== undefined))];
+      weekdays = [
+        ...new Set(
+          dayMatches.map((m) => DAY_MAP[m[0]!.toLowerCase()]!).filter((d) => d !== undefined),
+        ),
+      ];
       if (weekdays.length > 0) {
         frequency_type = "weekdays";
         hints.push("Custom weekdays");
@@ -139,20 +181,43 @@ export function parseQuickAdd(input: string): ParsedTask {
 
   strip(/\b(at|on|for|every)\b/gi);
 
-  const title = text.replace(/\s+/g, " ").trim().replace(/^[-–,]\s*/, "") || input.trim();
+  const title =
+    text
+      .replace(/\s+/g, " ")
+      .trim()
+      .replace(/^[-–,]\s*/, "") || input.trim();
 
-  let domain: Domain = "focus";
+  // Pattern detection for all matching domains
   for (const [pattern, dom] of DOMAIN_PATTERNS) {
     if (pattern.test(input)) {
-      domain = dom;
-      break;
+      if (!extractedCategories.includes(dom)) {
+        extractedCategories.push(dom);
+      }
     }
   }
+
+  if (extractedCategories.length === 0) {
+    extractedCategories.push("focus");
+  }
+
+  const primaryDomain: Domain = (extractedCategories.find((c) =>
+    [
+      "focus",
+      "health",
+      "career",
+      "mindset",
+      "finance",
+      "learning",
+      "creativity",
+      "relationships",
+    ].includes(c),
+  ) ?? "focus") as Domain;
 
   return {
     title: title.charAt(0).toUpperCase() + title.slice(1),
     icon_name: guessIcon(input),
-    domain,
+    domain: primaryDomain,
+    categories: extractedCategories,
     priority,
     energy_level,
     frequency_type,

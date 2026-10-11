@@ -1,12 +1,16 @@
 import { useEffect, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { AnimatePresence, motion } from "motion/react";
-import { CloudOff, RefreshCw } from "lucide-react";
+import { Cloud, CloudOff, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
-import { flushQueue, isOffline, queueSize } from "@/lib/ascend/offline";
-import { qk } from "@/lib/ascend/queries";
+import { flushQueue, isOffline, pullRemote, queueSize } from "@/lib/ascend/offline";
+import { mirrorLocalDataToDb, reloadTablesFromDb } from "@/lib/ascend/local-store";
+import { takeChangedTables } from "@/lib/sync/remote";
+import { syncSquads } from "@/lib/ascend/squads-remote";
+import { refreshPushSubscription } from "@/lib/ascend/push";
 
-/** Shows connection state and replays offline writes as soon as the network returns. */
+/** Shows connection state, mirrors browser storage into the local database once, and
+ *  replays queued writes to the optional remote database whenever a connection exists. */
 export function SyncWatcher() {
   const qc = useQueryClient();
   const [offline, setOffline] = useState(false);
@@ -14,16 +18,41 @@ export function SyncWatcher() {
   const [syncing, setSyncing] = useState(false);
 
   useEffect(() => {
+    let cancelled = false;
+
+    const bootstrap = async () => {
+      try {
+        await mirrorLocalDataToDb();
+      } catch {
+        /* local database unavailable — browser storage keeps the app running */
+      }
+    };
+
+    let running = false;
     const sync = async () => {
-      if (isOffline() || queueSize() === 0) return;
+      if (isOffline() || running) return;
+      running = true;
       setSyncing(true);
-      const flushed = await flushQueue();
-      setSyncing(false);
-      setPending(queueSize());
-      if (flushed > 0) {
-        await qc.invalidateQueries({ queryKey: qk.tasks });
-        await qc.invalidateQueries({ queryKey: qk.sessions });
-        toast.success(`Synced ${flushed} offline change${flushed === 1 ? "" : "s"}`);
+      try {
+        const flushed = queueSize() > 0 ? await flushQueue() : 0;
+        await pullRemote();
+        const changed = takeChangedTables();
+        if (changed.length > 0) await reloadTablesFromDb(changed);
+        const pulled = changed.length > 0;
+        const squads = await syncSquads();
+        if (!cancelled && squads) await qc.invalidateQueries({ queryKey: ["squads"] });
+        if (!cancelled && (flushed > 0 || pulled)) {
+          await Promise.all(changed.map((table) => qc.invalidateQueries({ queryKey: [table] })));
+          if (flushed > 0) {
+            toast.success(`Synced ${flushed} change${flushed === 1 ? "" : "s"}`);
+          }
+        }
+      } finally {
+        running = false;
+        if (!cancelled) {
+          setSyncing(false);
+          setPending(queueSize());
+        }
       }
     };
 
@@ -32,25 +61,55 @@ export function SyncWatcher() {
       void sync();
     };
     const onOffline = () => setOffline(true);
-    const onQueue = (event: Event) => setPending((event as CustomEvent<number>).detail ?? queueSize());
+    const onVisible = () => {
+      if (document.visibilityState === "visible") void sync();
+    };
+    const onSignInRequired = () => void qc.invalidateQueries({ queryKey: ["account"] });
+    let soon: number | undefined;
+    const onQueue = (event: Event) => {
+      setPending((event as CustomEvent<number>).detail ?? queueSize());
+      // Send fresh edits within a couple of seconds instead of waiting for the next tick.
+      window.clearTimeout(soon);
+      if (queueSize() > 0) soon = window.setTimeout(() => void sync(), 1500);
+    };
 
     setOffline(isOffline());
     setPending(queueSize());
-    void sync();
+    void bootstrap()
+      .then(sync)
+      .then(() => refreshPushSubscription());
 
     window.addEventListener("online", onOnline);
     window.addEventListener("offline", onOffline);
     window.addEventListener("ascend:queue", onQueue);
-    const id = window.setInterval(() => void sync(), 30_000);
+    window.addEventListener("ascend:signin-required", onSignInRequired);
+    window.addEventListener("ascend:sync-now", onOnline);
+    document.addEventListener("visibilitychange", onVisible);
+    const id = window.setInterval(() => void sync(), 10_000);
     return () => {
+      cancelled = true;
       window.removeEventListener("online", onOnline);
       window.removeEventListener("offline", onOffline);
       window.removeEventListener("ascend:queue", onQueue);
+      window.removeEventListener("ascend:signin-required", onSignInRequired);
+      window.removeEventListener("ascend:sync-now", onOnline);
+      document.removeEventListener("visibilitychange", onVisible);
       window.clearInterval(id);
+      window.clearTimeout(soon);
     };
   }, [qc]);
 
-  const visible = offline || pending > 0;
+  // Only surface background syncs that actually take a while.
+  const [slowSync, setSlowSync] = useState(false);
+  useEffect(() => {
+    if (!syncing) {
+      setSlowSync(false);
+      return;
+    }
+    const t = window.setTimeout(() => setSlowSync(true), 1200);
+    return () => window.clearTimeout(t);
+  }, [syncing]);
+  const visible = offline || (pending > 0 && !syncing) || slowSync;
 
   return (
     <AnimatePresence>
@@ -59,19 +118,23 @@ export function SyncWatcher() {
           initial={{ opacity: 0, y: -12 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -12 }}
-          className="fixed inset-x-0 top-3 z-50 mx-auto flex w-fit items-center gap-2 rounded-full border border-border bg-surface/90 px-4 py-1.5 text-xs backdrop-blur"
+          className="fixed inset-x-0 top-3 z-50 mx-auto flex w-fit items-center gap-2 rounded-full border border-border bg-surface/90 px-4 py-1.5 text-xs backdrop-blur shadow-sm"
         >
           {syncing ? (
             <RefreshCw className="size-3.5 animate-spin text-primary" />
-          ) : (
+          ) : offline ? (
             <CloudOff className="size-3.5 text-accent" />
+          ) : (
+            <Cloud className="size-3.5 text-primary" />
           )}
           <span className="text-muted-foreground">
-            {offline
-              ? pending > 0
-                ? `Offline — ${pending} change${pending === 1 ? "" : "s"} queued`
-                : "Offline — changes will sync later"
-              : `Syncing ${pending} change${pending === 1 ? "" : "s"}`}
+            {syncing
+              ? "Syncing…"
+              : offline
+                ? pending > 0
+                  ? `Offline — ${pending} change${pending === 1 ? "" : "s"} saved on this device`
+                  : "Offline mode — everything still works"
+                : `Sending ${pending} change${pending === 1 ? "" : "s"}`}
           </span>
         </motion.div>
       )}

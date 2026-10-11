@@ -8,7 +8,12 @@ export type Badge = {
 };
 
 export const BADGES: Badge[] = [
-  { key: "first_step", label: "First Step", description: "Complete your first task", tier: "bronze" },
+  {
+    key: "first_step",
+    label: "First Step",
+    description: "Complete your first task",
+    tier: "bronze",
+  },
   { key: "ten_done", label: "Ten Up", description: "Complete 10 tasks", tier: "bronze" },
   { key: "fifty_done", label: "Half Century", description: "Complete 50 tasks", tier: "silver" },
   { key: "two_hundred_done", label: "Relentless", description: "Complete 200 tasks", tier: "gold" },
@@ -16,9 +21,24 @@ export const BADGES: Badge[] = [
   { key: "streak_7", label: "Week Strong", description: "Hold a 7-day streak", tier: "silver" },
   { key: "streak_30", label: "Unbroken", description: "Hold a 30-day streak", tier: "gold" },
   { key: "focus_60", label: "Deep Hour", description: "Log 60 focus minutes", tier: "bronze" },
-  { key: "focus_600", label: "Ten Hours Deep", description: "Log 600 focus minutes", tier: "silver" },
-  { key: "goal_done", label: "Goal Crusher", description: "Finish every subtask of a goal", tier: "gold" },
-  { key: "all_domains", label: "Balanced", description: "Complete a task in all four domains", tier: "silver" },
+  {
+    key: "focus_600",
+    label: "Ten Hours Deep",
+    description: "Log 600 focus minutes",
+    tier: "silver",
+  },
+  {
+    key: "goal_done",
+    label: "Goal Crusher",
+    description: "Finish every subtask of a goal",
+    tier: "gold",
+  },
+  {
+    key: "all_domains",
+    label: "Balanced",
+    description: "Complete a task in all four domains",
+    tier: "silver",
+  },
 ];
 
 export function earnedBadgeKeys(input: {

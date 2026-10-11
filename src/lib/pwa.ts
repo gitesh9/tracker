@@ -1,12 +1,23 @@
 /**
  * Single registrar for the app-shell service worker.
- * Never registers in dev, inside an iframe, or with ?sw=off.
+ * Never registers inside an iframe (e.g. AI Studio preview) or with ?sw=off.
+ * Always allows registration in standalone installed PWA mode or full-window navigation.
  */
 function isBlockedContext(): boolean {
   if (typeof window === "undefined") return true;
-  if (!import.meta.env.PROD) return true;
+
+  // Always enable service worker for installed standalone PWA
+  const isStandalone =
+    window.matchMedia("(display-mode: standalone)").matches ||
+    (window.navigator as unknown as { standalone?: boolean }).standalone === true;
+  if (isStandalone) return false;
+
+  // Suppress worker inside editor preview iframes to prevent caching stale previews
   if (window.self !== window.top) return true;
+
+  // Explicit opt-out flag for troubleshooting
   if (new URLSearchParams(window.location.search).get("sw") === "off") return true;
+
   return false;
 }
 
@@ -26,7 +37,18 @@ export function registerServiceWorker() {
     void unregisterAppWorker();
     return;
   }
-  window.addEventListener("load", () => {
-    void navigator.serviceWorker.register("/sw.js", { scope: "/" });
-  });
+
+  const register = () => {
+    void navigator.serviceWorker
+      .register("/sw.js", { scope: "/" })
+      .then((registration) => registration.update())
+      .catch(() => {
+        /* offline installs retry on the next launch */
+      });
+  };
+
+  // This runs after hydration, so the window "load" event has usually fired
+  // already — waiting for it would mean never registering at all.
+  if (document.readyState === "complete") register();
+  else window.addEventListener("load", register, { once: true });
 }

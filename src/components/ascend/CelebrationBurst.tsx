@@ -1,12 +1,37 @@
+import { useEffect } from "react";
 import { AnimatePresence, motion } from "motion/react";
 
 const PARTICLES = Array.from({ length: 12 }, (_, i) => i);
 
-export function CelebrationBurst({ active }: { active: boolean }) {
+type BurstProps = {
+  /** Inline burst inside a positioned parent. */
+  active?: boolean;
+  /** Viewport coordinates for a one-shot burst rendered above the page. */
+  origin?: { x: number; y: number };
+  onComplete?: () => void;
+};
+
+export function CelebrationBurst({ active, origin, onComplete }: BurstProps) {
+  const visible = origin ? true : Boolean(active);
+
+  useEffect(() => {
+    if (!origin || !onComplete) return;
+    const id = window.setTimeout(onComplete, 800);
+    return () => window.clearTimeout(id);
+  }, [origin, onComplete]);
+
   return (
     <AnimatePresence>
-      {active && (
-        <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+      {visible && (
+        <div
+          aria-hidden
+          className={
+            origin
+              ? "pointer-events-none fixed z-50 flex items-center justify-center"
+              : "pointer-events-none absolute inset-0 flex items-center justify-center"
+          }
+          {...(origin ? { style: { left: origin.x, top: origin.y } } : {})}
+        >
           {PARTICLES.map((i) => {
             const angle = (i / PARTICLES.length) * Math.PI * 2;
             const distance = 34 + (i % 3) * 10;

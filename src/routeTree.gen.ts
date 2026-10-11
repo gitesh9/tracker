@@ -18,8 +18,22 @@ import { Route as AuthenticatedFocusRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedGoalsRouteImport } from './routes/_authenticated/goals'
 import { Route as AuthenticatedInsightsRouteImport } from './routes/_authenticated/insights'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
+import { Route as AuthenticatedTeamRouteImport } from './routes/_authenticated/team'
 import { Route as AuthenticatedTodayRouteImport } from './routes/_authenticated/today'
 import { Route as AuthenticatedTreeRouteImport } from './routes/_authenticated/tree'
+import { Route as ApiHealthRouteImport } from './routes/api/health'
+import { Route as ApiPublicSquadsRouteImport } from './routes/api/public/squads'
+import { Route as ApiPublicSyncRouteImport } from './routes/api/public/sync'
+import { Route as ApiPublicAuthMeRouteImport } from './routes/api/public/auth/me'
+import { Route as ApiPublicAuthSigninRouteImport } from './routes/api/public/auth/signin'
+import { Route as ApiPublicAuthSignoutRouteImport } from './routes/api/public/auth/signout'
+import { Route as ApiPublicAuthSignupRouteImport } from './routes/api/public/auth/signup'
+import { Route as ApiPublicPushDispatchRouteImport } from './routes/api/public/push/dispatch'
+import { Route as ApiPublicPushPendingRouteImport } from './routes/api/public/push/pending'
+import { Route as ApiPublicPushSubscribeRouteImport } from './routes/api/public/push/subscribe'
+import { Route as ApiPublicAuthGoogleCallbackRouteImport } from './routes/api/public/auth/google/callback'
+import { Route as ApiPublicAuthGoogleCodeRouteImport } from './routes/api/public/auth/google/code'
+import { Route as ApiPublicAuthGoogleStartRouteImport } from './routes/api/public/auth/google/start'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -65,6 +79,11 @@ const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
   path: '/settings',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedTeamRoute = AuthenticatedTeamRouteImport.update({
+  id: '/team',
+  path: '/team',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedTodayRoute = AuthenticatedTodayRouteImport.update({
   id: '/today',
   path: '/today',
@@ -75,6 +94,73 @@ const AuthenticatedTreeRoute = AuthenticatedTreeRouteImport.update({
   path: '/tree',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const ApiHealthRoute = ApiHealthRouteImport.update({
+  id: '/api/health',
+  path: '/api/health',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicSquadsRoute = ApiPublicSquadsRouteImport.update({
+  id: '/api/public/squads',
+  path: '/api/public/squads',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicSyncRoute = ApiPublicSyncRouteImport.update({
+  id: '/api/public/sync',
+  path: '/api/public/sync',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicAuthMeRoute = ApiPublicAuthMeRouteImport.update({
+  id: '/api/public/auth/me',
+  path: '/api/public/auth/me',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicAuthSigninRoute = ApiPublicAuthSigninRouteImport.update({
+  id: '/api/public/auth/signin',
+  path: '/api/public/auth/signin',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicAuthSignoutRoute = ApiPublicAuthSignoutRouteImport.update({
+  id: '/api/public/auth/signout',
+  path: '/api/public/auth/signout',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicAuthSignupRoute = ApiPublicAuthSignupRouteImport.update({
+  id: '/api/public/auth/signup',
+  path: '/api/public/auth/signup',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicPushDispatchRoute = ApiPublicPushDispatchRouteImport.update({
+  id: '/api/public/push/dispatch',
+  path: '/api/public/push/dispatch',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicPushPendingRoute = ApiPublicPushPendingRouteImport.update({
+  id: '/api/public/push/pending',
+  path: '/api/public/push/pending',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicPushSubscribeRoute = ApiPublicPushSubscribeRouteImport.update({
+  id: '/api/public/push/subscribe',
+  path: '/api/public/push/subscribe',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicAuthGoogleCallbackRoute =
+  ApiPublicAuthGoogleCallbackRouteImport.update({
+    id: '/api/public/auth/google/callback',
+    path: '/api/public/auth/google/callback',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicAuthGoogleCodeRoute = ApiPublicAuthGoogleCodeRouteImport.update({
+  id: '/api/public/auth/google/code',
+  path: '/api/public/auth/google/code',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicAuthGoogleStartRoute =
+  ApiPublicAuthGoogleStartRouteImport.update({
+    id: '/api/public/auth/google/start',
+    path: '/api/public/auth/google/start',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -85,8 +171,22 @@ export interface FileRoutesByFullPath {
   '/goals': typeof AuthenticatedGoalsRoute
   '/insights': typeof AuthenticatedInsightsRoute
   '/settings': typeof AuthenticatedSettingsRoute
+  '/team': typeof AuthenticatedTeamRoute
   '/today': typeof AuthenticatedTodayRoute
   '/tree': typeof AuthenticatedTreeRoute
+  '/api/health': typeof ApiHealthRoute
+  '/api/public/squads': typeof ApiPublicSquadsRoute
+  '/api/public/sync': typeof ApiPublicSyncRoute
+  '/api/public/auth/me': typeof ApiPublicAuthMeRoute
+  '/api/public/auth/signin': typeof ApiPublicAuthSigninRoute
+  '/api/public/auth/signout': typeof ApiPublicAuthSignoutRoute
+  '/api/public/auth/signup': typeof ApiPublicAuthSignupRoute
+  '/api/public/push/dispatch': typeof ApiPublicPushDispatchRoute
+  '/api/public/push/pending': typeof ApiPublicPushPendingRoute
+  '/api/public/push/subscribe': typeof ApiPublicPushSubscribeRoute
+  '/api/public/auth/google/callback': typeof ApiPublicAuthGoogleCallbackRoute
+  '/api/public/auth/google/code': typeof ApiPublicAuthGoogleCodeRoute
+  '/api/public/auth/google/start': typeof ApiPublicAuthGoogleStartRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -97,8 +197,22 @@ export interface FileRoutesByTo {
   '/goals': typeof AuthenticatedGoalsRoute
   '/insights': typeof AuthenticatedInsightsRoute
   '/settings': typeof AuthenticatedSettingsRoute
+  '/team': typeof AuthenticatedTeamRoute
   '/today': typeof AuthenticatedTodayRoute
   '/tree': typeof AuthenticatedTreeRoute
+  '/api/health': typeof ApiHealthRoute
+  '/api/public/squads': typeof ApiPublicSquadsRoute
+  '/api/public/sync': typeof ApiPublicSyncRoute
+  '/api/public/auth/me': typeof ApiPublicAuthMeRoute
+  '/api/public/auth/signin': typeof ApiPublicAuthSigninRoute
+  '/api/public/auth/signout': typeof ApiPublicAuthSignoutRoute
+  '/api/public/auth/signup': typeof ApiPublicAuthSignupRoute
+  '/api/public/push/dispatch': typeof ApiPublicPushDispatchRoute
+  '/api/public/push/pending': typeof ApiPublicPushPendingRoute
+  '/api/public/push/subscribe': typeof ApiPublicPushSubscribeRoute
+  '/api/public/auth/google/callback': typeof ApiPublicAuthGoogleCallbackRoute
+  '/api/public/auth/google/code': typeof ApiPublicAuthGoogleCodeRoute
+  '/api/public/auth/google/start': typeof ApiPublicAuthGoogleStartRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -111,8 +225,22 @@ export interface FileRoutesById {
   '/_authenticated/goals': typeof AuthenticatedGoalsRoute
   '/_authenticated/insights': typeof AuthenticatedInsightsRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
+  '/_authenticated/team': typeof AuthenticatedTeamRoute
   '/_authenticated/today': typeof AuthenticatedTodayRoute
   '/_authenticated/tree': typeof AuthenticatedTreeRoute
+  '/api/health': typeof ApiHealthRoute
+  '/api/public/squads': typeof ApiPublicSquadsRoute
+  '/api/public/sync': typeof ApiPublicSyncRoute
+  '/api/public/auth/me': typeof ApiPublicAuthMeRoute
+  '/api/public/auth/signin': typeof ApiPublicAuthSigninRoute
+  '/api/public/auth/signout': typeof ApiPublicAuthSignoutRoute
+  '/api/public/auth/signup': typeof ApiPublicAuthSignupRoute
+  '/api/public/push/dispatch': typeof ApiPublicPushDispatchRoute
+  '/api/public/push/pending': typeof ApiPublicPushPendingRoute
+  '/api/public/push/subscribe': typeof ApiPublicPushSubscribeRoute
+  '/api/public/auth/google/callback': typeof ApiPublicAuthGoogleCallbackRoute
+  '/api/public/auth/google/code': typeof ApiPublicAuthGoogleCodeRoute
+  '/api/public/auth/google/start': typeof ApiPublicAuthGoogleStartRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -125,8 +253,22 @@ export interface FileRouteTypes {
     | '/goals'
     | '/insights'
     | '/settings'
+    | '/team'
     | '/today'
     | '/tree'
+    | '/api/health'
+    | '/api/public/squads'
+    | '/api/public/sync'
+    | '/api/public/auth/me'
+    | '/api/public/auth/signin'
+    | '/api/public/auth/signout'
+    | '/api/public/auth/signup'
+    | '/api/public/push/dispatch'
+    | '/api/public/push/pending'
+    | '/api/public/push/subscribe'
+    | '/api/public/auth/google/callback'
+    | '/api/public/auth/google/code'
+    | '/api/public/auth/google/start'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -137,8 +279,22 @@ export interface FileRouteTypes {
     | '/goals'
     | '/insights'
     | '/settings'
+    | '/team'
     | '/today'
     | '/tree'
+    | '/api/health'
+    | '/api/public/squads'
+    | '/api/public/sync'
+    | '/api/public/auth/me'
+    | '/api/public/auth/signin'
+    | '/api/public/auth/signout'
+    | '/api/public/auth/signup'
+    | '/api/public/push/dispatch'
+    | '/api/public/push/pending'
+    | '/api/public/push/subscribe'
+    | '/api/public/auth/google/callback'
+    | '/api/public/auth/google/code'
+    | '/api/public/auth/google/start'
   id:
     | '__root__'
     | '/'
@@ -150,14 +306,41 @@ export interface FileRouteTypes {
     | '/_authenticated/goals'
     | '/_authenticated/insights'
     | '/_authenticated/settings'
+    | '/_authenticated/team'
     | '/_authenticated/today'
     | '/_authenticated/tree'
+    | '/api/health'
+    | '/api/public/squads'
+    | '/api/public/sync'
+    | '/api/public/auth/me'
+    | '/api/public/auth/signin'
+    | '/api/public/auth/signout'
+    | '/api/public/auth/signup'
+    | '/api/public/push/dispatch'
+    | '/api/public/push/pending'
+    | '/api/public/push/subscribe'
+    | '/api/public/auth/google/callback'
+    | '/api/public/auth/google/code'
+    | '/api/public/auth/google/start'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
+  ApiHealthRoute: typeof ApiHealthRoute
+  ApiPublicSquadsRoute: typeof ApiPublicSquadsRoute
+  ApiPublicSyncRoute: typeof ApiPublicSyncRoute
+  ApiPublicAuthMeRoute: typeof ApiPublicAuthMeRoute
+  ApiPublicAuthSigninRoute: typeof ApiPublicAuthSigninRoute
+  ApiPublicAuthSignoutRoute: typeof ApiPublicAuthSignoutRoute
+  ApiPublicAuthSignupRoute: typeof ApiPublicAuthSignupRoute
+  ApiPublicPushDispatchRoute: typeof ApiPublicPushDispatchRoute
+  ApiPublicPushPendingRoute: typeof ApiPublicPushPendingRoute
+  ApiPublicPushSubscribeRoute: typeof ApiPublicPushSubscribeRoute
+  ApiPublicAuthGoogleCallbackRoute: typeof ApiPublicAuthGoogleCallbackRoute
+  ApiPublicAuthGoogleCodeRoute: typeof ApiPublicAuthGoogleCodeRoute
+  ApiPublicAuthGoogleStartRoute: typeof ApiPublicAuthGoogleStartRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -225,6 +408,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedSettingsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/team': {
+      id: '/_authenticated/team'
+      path: '/team'
+      fullPath: '/team'
+      preLoaderRoute: typeof AuthenticatedTeamRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/today': {
       id: '/_authenticated/today'
       path: '/today'
@@ -239,6 +429,97 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedTreeRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/api/health': {
+      id: '/api/health'
+      path: '/api/health'
+      fullPath: '/api/health'
+      preLoaderRoute: typeof ApiHealthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/squads': {
+      id: '/api/public/squads'
+      path: '/api/public/squads'
+      fullPath: '/api/public/squads'
+      preLoaderRoute: typeof ApiPublicSquadsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/sync': {
+      id: '/api/public/sync'
+      path: '/api/public/sync'
+      fullPath: '/api/public/sync'
+      preLoaderRoute: typeof ApiPublicSyncRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/auth/me': {
+      id: '/api/public/auth/me'
+      path: '/api/public/auth/me'
+      fullPath: '/api/public/auth/me'
+      preLoaderRoute: typeof ApiPublicAuthMeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/auth/signin': {
+      id: '/api/public/auth/signin'
+      path: '/api/public/auth/signin'
+      fullPath: '/api/public/auth/signin'
+      preLoaderRoute: typeof ApiPublicAuthSigninRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/auth/signout': {
+      id: '/api/public/auth/signout'
+      path: '/api/public/auth/signout'
+      fullPath: '/api/public/auth/signout'
+      preLoaderRoute: typeof ApiPublicAuthSignoutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/auth/signup': {
+      id: '/api/public/auth/signup'
+      path: '/api/public/auth/signup'
+      fullPath: '/api/public/auth/signup'
+      preLoaderRoute: typeof ApiPublicAuthSignupRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/push/dispatch': {
+      id: '/api/public/push/dispatch'
+      path: '/api/public/push/dispatch'
+      fullPath: '/api/public/push/dispatch'
+      preLoaderRoute: typeof ApiPublicPushDispatchRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/push/pending': {
+      id: '/api/public/push/pending'
+      path: '/api/public/push/pending'
+      fullPath: '/api/public/push/pending'
+      preLoaderRoute: typeof ApiPublicPushPendingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/push/subscribe': {
+      id: '/api/public/push/subscribe'
+      path: '/api/public/push/subscribe'
+      fullPath: '/api/public/push/subscribe'
+      preLoaderRoute: typeof ApiPublicPushSubscribeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/auth/google/callback': {
+      id: '/api/public/auth/google/callback'
+      path: '/api/public/auth/google/callback'
+      fullPath: '/api/public/auth/google/callback'
+      preLoaderRoute: typeof ApiPublicAuthGoogleCallbackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/auth/google/code': {
+      id: '/api/public/auth/google/code'
+      path: '/api/public/auth/google/code'
+      fullPath: '/api/public/auth/google/code'
+      preLoaderRoute: typeof ApiPublicAuthGoogleCodeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/auth/google/start': {
+      id: '/api/public/auth/google/start'
+      path: '/api/public/auth/google/start'
+      fullPath: '/api/public/auth/google/start'
+      preLoaderRoute: typeof ApiPublicAuthGoogleStartRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -249,6 +530,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedGoalsRoute: typeof AuthenticatedGoalsRoute
   AuthenticatedInsightsRoute: typeof AuthenticatedInsightsRoute
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
+  AuthenticatedTeamRoute: typeof AuthenticatedTeamRoute
   AuthenticatedTodayRoute: typeof AuthenticatedTodayRoute
   AuthenticatedTreeRoute: typeof AuthenticatedTreeRoute
 }
@@ -260,6 +542,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedGoalsRoute: AuthenticatedGoalsRoute,
   AuthenticatedInsightsRoute: AuthenticatedInsightsRoute,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
+  AuthenticatedTeamRoute: AuthenticatedTeamRoute,
   AuthenticatedTodayRoute: AuthenticatedTodayRoute,
   AuthenticatedTreeRoute: AuthenticatedTreeRoute,
 }
@@ -271,6 +554,19 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
+  ApiHealthRoute: ApiHealthRoute,
+  ApiPublicSquadsRoute: ApiPublicSquadsRoute,
+  ApiPublicSyncRoute: ApiPublicSyncRoute,
+  ApiPublicAuthMeRoute: ApiPublicAuthMeRoute,
+  ApiPublicAuthSigninRoute: ApiPublicAuthSigninRoute,
+  ApiPublicAuthSignoutRoute: ApiPublicAuthSignoutRoute,
+  ApiPublicAuthSignupRoute: ApiPublicAuthSignupRoute,
+  ApiPublicPushDispatchRoute: ApiPublicPushDispatchRoute,
+  ApiPublicPushPendingRoute: ApiPublicPushPendingRoute,
+  ApiPublicPushSubscribeRoute: ApiPublicPushSubscribeRoute,
+  ApiPublicAuthGoogleCallbackRoute: ApiPublicAuthGoogleCallbackRoute,
+  ApiPublicAuthGoogleCodeRoute: ApiPublicAuthGoogleCodeRoute,
+  ApiPublicAuthGoogleStartRoute: ApiPublicAuthGoogleStartRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

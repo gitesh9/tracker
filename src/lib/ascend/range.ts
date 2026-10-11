@@ -85,6 +85,7 @@ export function formatShort(iso: string): string {
 
 export function formatBucket(iso: string, granularity: Granularity): string {
   const date = fromISO(iso);
-  if (granularity === "month") return date.toLocaleDateString(undefined, { month: "short", year: "2-digit" });
+  if (granularity === "month")
+    return date.toLocaleDateString(undefined, { month: "short", year: "2-digit" });
   return date.toLocaleDateString(undefined, { month: "short", day: "numeric" });
 }

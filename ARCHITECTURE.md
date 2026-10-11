@@ -1,202 +1,149 @@
-# Ascend — Architecture & Project Documentation
+# Ascend — Architecture & System Documentation
 
-## Overview
+## 1. System Overview
 
-**Ascend** is a Progressive Web App (PWA) for personal growth tracking — habits, goals, focus sessions, streaks, and procrastination analytics — built with a modern React + TanStack + Supabase stack.
-
----
-
-## Tech Stack
-
-| Layer         | Technology                                                     |
-| ------------- | -------------------------------------------------------------- |
-| Framework     | [TanStack Start](https://tanstack.com/start) (SSR + SPA)      |
-| UI            | React 19, Tailwind CSS 4, shadcn/ui (New York style), Motion   |
-| Routing       | TanStack Router (file-based, code-generated route tree)        |
-| Data          | TanStack Query, Supabase (Postgres + Auth)                     |
-| AI            | Google Gemini 3.5 Flash via Lovable AI Gateway (server-side)   |
-| PWA           | vite-plugin-pwa (Workbox, generateSW strategy)                 |
-| Build         | Vite, `@lovable.dev/vite-tanstack-config` (wraps Vite plugins) |
-| Linting       | ESLint 9, Prettier                                             |
-| Package Mgr   | pnpm (bun lockfile also present)                               |
-| Deployment    | Cloudflare (via Nitro, configured by the Vite config wrapper)  |
+**Ascend** is an offline-first Progressive Web App (PWA) designed for habit consistency, milestone deconstruction, focus tracking, and behavioral analytics. The application is built on a full-stack React 19 + TanStack Start framework integrated with Supabase PostgreSQL, Google Gemini 3.5 Flash server functions, and native browser APIs (Web Audio, Web Speech, Service Workers).
 
 ---
 
-## Directory Structure
+## 2. Technical Stack
+
+| Layer                   | Technology                                   | Purpose                                                          |
+| ----------------------- | -------------------------------------------- | ---------------------------------------------------------------- |
+| **Framework**           | [TanStack Start](https://tanstack.com/start) | Full-stack React SSR + client-side routing                       |
+| **Routing**             | TanStack Router                              | Type-safe, file-based routing system                             |
+| **Styling & Design**    | Tailwind CSS 4, shadcn/ui, Motion            | Aurora dark theme tokens, glassmorphism, micro-interactions      |
+| **Data Fetching**       | TanStack Query v5                            | Reactive cache management, optimistic updates, offline hydration |
+| **Database & Auth**     | Supabase (PostgreSQL + RLS)                  | Real-time multi-device sync, row-level security                  |
+| **Data Visualizations** | Recharts & Custom SVGs                       | Trend area/bar/line charts, domain radars, growth trees          |
+| **AI Intelligence**     | Google Gemini 3.5 Flash                      | Server functions for schedules, goal breakdown, retrospectives   |
+| **Browser Engines**     | Web Audio API & Web Speech API               | Embedded soundscapes (binaural beats, rain) and voice quick-add  |
+| **PWA & Offline**       | vite-plugin-pwa (Workbox)                    | Offline service worker caching and installability                |
+
+---
+
+## 3. Directory Layout
 
 ```
-tracker/
-├── AGENTS.md                   # Lovable sync metadata
-├── bunfig.toml                 # Bun install config (supply-chain guard)
-├── components.json             # shadcn/ui configuration
-├── eslint.config.js            # ESLint 9 flat config
-├── package.json                # Dependencies & scripts
-├── tsconfig.json               # TypeScript (ES2022, Bundler resolution, strict)
-├── vite.config.ts              # Vite config (delegates to @lovable.dev wrapper)
+├── FEATURES.md                   # Comprehensive feature & capability specification
+├── ARCHITECTURE.md               # Technical architecture & design document
+├── README.md                     # Project overview and developer onboarding
+├── eslint.config.js              # ESLint 9 configuration
+├── package.json                  # Dependencies, scripts, and build targets
+├── vite.config.ts                # Vite build and plugin setup
 │
 ├── public/
-│   ├── robots.txt
-│   └── icons/                  # PWA icons (192, 512)
+│   ├── icons/                    # PWA launcher icons (192x192, 512x512)
+│   └── robots.txt                # Search index directives
 │
-├── supabase/
-│   ├── config.toml             # Supabase project config
-│   └── migrations/             # SQL migration files
-│
-└── src/
-    ├── start.ts                # TanStack Start entry — middleware registration
-    ├── server.ts               # Custom SSR entry — error capture wrapper
-    ├── router.tsx              # TanStack Router + QueryClient factory
-    ├── routeTree.gen.ts        # Auto-generated route tree (do not edit)
-    ├── styles.css              # Tailwind + Ascend design system tokens
-    │
-    ├── components/
-    │   ├── ascend/             # App-specific components
-    │   │   ├── BadgeModal.tsx       # Badge display modal
-    │   │   ├── BadgeWatcher.tsx     # Auto-unlock badge checker
-    │   │   ├── CelebrationBurst.tsx # Task completion animation
-    │   │   ├── DelayDialog.tsx      # Procrastination reason picker
-    │   │   ├── Heatmap.tsx          # Consistency heatmap
-    │   │   ├── ProgressRing.tsx     # Circular progress indicator
-    │   │   ├── QuickAdd.tsx         # Natural-language task input
-    │   │   ├── RangeSelector.tsx    # Date range picker
-    │   │   ├── StreakChip.tsx       # Streak counter display
-    │   │   ├── SyncWatcher.tsx      # Cross-device sync indicator
-    │   │   ├── TaskCard.tsx         # Task display/toggle card
-    │   │   └── TimeframeSelector.tsx# Timeframe filter (1d–all)
-    │   └── ui/                 # shadcn/ui primitives (50+ components)
-    │
-    ├── hooks/
-    │   └── use-mobile.tsx      # Responsive breakpoint hook
-    │
-    ├── integrations/
-    │   ├── lovable/
-    │   │   └── index.ts        # Lovable OAuth wrapper (Google sign-in)
-    │   └── supabase/
-    │       ├── client.ts           # Browser-side Supabase client
-    │       ├── client.server.ts    # Server-side admin client (bypasses RLS)
-    │       ├── auth-attacher.ts    # Client middleware: attaches bearer token to RPCs
-    │       ├── auth-middleware.ts  # Server middleware: validates auth on server fns
-    │       └── types.ts            # Auto-generated Database types
-    │
-    ├── lib/
-    │   ├── utils.ts                # cn() and general utilities
-    │   ├── pwa.ts                  # SW registration (blocks Lovable preview)
-    │   ├── error-capture.ts        # Global error capture (console.error wrap)
-    │   ├── error-page.ts           # Static 500 HTML page
-    │   ├── lovable-error-reporting.ts  # Forwards errors to Lovable editor telemetry
-    │   └── ascend/
-    │       ├── ai.functions.ts     # Server functions: timetable, goal breakdown, diagnostics
-    │       ├── badges.ts           # Badge unlock logic
-    │       ├── cadence.ts          # Date math, streak computation, frequency helpers
-    │       ├── icons.tsx           # Icon mapping for tasks
-    │       ├── notifications.ts    # Push notification / reminder tick
-    │       ├── offline.ts          # Offline queue for mutations
-    │       ├── queries.ts          # TanStack Query hooks (CRUD for all entities)
-    │       ├── quick-add.ts        # NLP parser for quick-add input
-    │       ├── range.ts            # Timeframe range utilities
-    │       ├── types.ts            # Domain types derived from DB schema
-    │       └── use-auth.ts         # useAuthUser() hook
-    │
-    └── routes/
-        ├── __root.tsx              # Root layout (HTML shell, auth listener, error boundary)
-        ├── auth.tsx                # Sign-in / sign-up page
-        ├── index.tsx               # Landing page (marketing)
-        └── _authenticated/
-            ├── route.tsx           # Auth guard layout (redirects to /auth)
-            ├── today.tsx           # Daily task view + AI timetable
-            ├── goals.tsx           # Goals + subtask management
-            ├── focus.tsx           # Pomodoro / focus sessions
-            ├── tree.tsx            # Growth tree visualization
-            ├── calendar.tsx        # Calendar heatmap view
-            ├── insights.tsx        # Analytics dashboard
-            ├── achieved.tsx        # Retrospective / achievements
-            └── settings.tsx        # User settings
+├── src/
+│   ├── main.tsx                  # React DOM entry point
+│   ├── router.tsx                # TanStack Router & QueryClient instantiation
+│   ├── routeTree.gen.ts          # Auto-generated type-safe route manifest
+│   ├── styles.css                # Tailwind base, aurora design variables & tokens
+│   │
+│   ├── components/
+│   │   ├── ascend/               # Domain-specific components
+│   │   │   ├── BadgeModal.tsx         # Achievement unlock showcase
+│   │   │   ├── BadgeWatcher.tsx       # Automatic milestone unlock listener
+│   │   │   ├── CelebrationBurst.tsx   # Particle celebration effects on complete
+│   │   │   ├── DelayDialog.tsx        # 1-tap procrastination reason logger
+│   │   │   ├── Heatmap.tsx            # Annual consistency matrix
+│   │   │   ├── ProgressRing.tsx       # SVG circular velocity indicator
+│   │   │   ├── QuickAdd.tsx           # NLP and Web Speech voice input
+│   │   │   ├── RangeSelector.tsx      # Date range picker & custom calendar
+│   │   │   ├── StreakChip.tsx         # Active streak & freeze counter
+│   │   │   ├── SyncWatcher.tsx        # Cloud vs. local sync status indicator
+│   │   │   ├── TaskCard.tsx           # Task card with priority, timer & carry-forward
+│   │   │   └── TimeframeSelector.tsx  # Dynamic timeframe filter
+│   │   └── ui/                   # Headless accessible shadcn primitives
+│   │
+│   ├── lib/
+│   │   ├── utils.ts              # Class merging (`cn`) and formatting helpers
+│   │   ├── ascend/
+│   │   │   ├── ai.functions.ts   # Server functions (Timetable, Breakdown, Retro, Diagnostics)
+│   │   │   ├── badges.ts         # Achievement criteria definitions
+│   │   │   ├── cadence.ts        # Streak algorithms, carry-forward math, date arithmetic
+│   │   │   ├── ics.ts            # RFC 5545 iCalendar feed generator
+│   │   │   ├── icons.ts          # Lucide icon mapping for task visual states
+│   │   │   ├── notifications.ts  # Web notification scheduling & permission handling
+│   │   │   ├── offline.ts        # Mutation queue & localStorage fallback
+│   │   │   ├── queries.ts        # TanStack Query custom hooks for Supabase CRUD
+│   │   │   ├── quick-add.ts      # Natural language string parser
+│   │   │   ├── range.ts          # Timeframe range calculations & bucketing
+│   │   │   ├── soundscapes.ts    # Web Audio API real-time audio synthesizers
+│   │   │   └── types.ts          # Domain TypeScript type definitions
+│   │
+│   └── routes/
+│       ├── __root.tsx            # HTML shell, global audio/sync providers, error boundaries
+│       ├── auth.tsx              # Sign-in & sign-up authentication page
+│       ├── index.tsx             # Public landing & feature tour
+│       └── _authenticated/
+│           ├── route.tsx         # Authenticated layout guard & sidebar navigation
+│           ├── today.tsx         # Daily task list, energy timetable & voice quick-add
+│           ├── goals.tsx         # Long-term goals & nested subtasks with definition of done
+│           ├── focus.tsx         # Pomodoro / Sprint focus timers with ambient soundscapes
+│           ├── tree.tsx          # Growth Tree SVG visualization with custom range picker
+│           ├── calendar.tsx      # Calendar view, month grid & .ics export
+│           ├── insights.tsx      # Multi-metric charts, delay analysis & weekly AI retrospective
+│           ├── team.tsx          # Accountability squads, sprint challenges & cheers
+│           ├── achieved.tsx      # Milestone history & exportable progress cards
+│           └── settings.tsx      # Profile, AI toggles, custom reminders, calendar sync & sign-out
 ```
 
 ---
 
-## Architecture Flow
+## 4. Architectural Data & Execution Flows
 
 ```
-Browser ──► TanStack Router (SPA navigation)
-               │
-               ├── Public routes: / (landing), /auth
-               └── /_authenticated/* (guarded by beforeLoad → supabase.auth.getUser)
-                      │
-                      ├── Components read data via TanStack Query hooks (src/lib/ascend/queries.ts)
-                      │       └── Supabase client (src/integrations/supabase/client.ts)
-                      │
-                      └── Server functions (AI features in src/lib/ascend/ai.functions.ts)
-                              └── Protected by requireSupabaseAuth middleware
-                              └── Call Lovable AI Gateway (OpenAI-compatible endpoint)
+[Browser Client]
+       │
+       ├── Web Speech Recognition (Voice Quick-Add) ──► NLP Parser (quick-add.ts)
+       │
+       ├── Web Audio API (soundscapes.ts) ────────────► Local Audio Output (Binaural, Rain)
+       │
+       ├── TanStack Query (queries.ts)
+       │       │
+       │       ├── [Online]  ──► Supabase PostgreSQL (via Browser SDK + RLS)
+       │       └── [Offline] ──► localStorage Queue (offline.ts) with Auto-Replay
+       │
+       └── TanStack Start Server Functions (ai.functions.ts)
+               │ (requireSupabaseAuth middleware)
+               └──► Google Gemini 3.5 Flash Gateway
 ```
 
-### Authentication
+---
 
-1. **Email/password** — handled directly by `supabase.auth.signUp` / `signInWithPassword`.
-2. **Google OAuth** — routed through `@lovable.dev/cloud-auth-js` (Lovable's OAuth proxy), which sets the Supabase session after redirect.
-3. **Server functions** — the client middleware (`auth-attacher.ts`) extracts the access token and sends it as an `Authorization` header; the server middleware (`auth-middleware.ts`) validates it and creates a per-request Supabase client scoped to the user.
+## 5. Database Schema (Supabase PostgreSQL)
 
-### Data Layer
-
-All CRUD goes through `src/lib/ascend/queries.ts`, which exports React Query hooks (`useTasks`, `useGoals`, `useProfile`, etc.) that talk directly to Supabase via the browser client. Optimistic mutations are used for task updates. An offline queue (`offline.ts`) enqueues mutations when the device is disconnected.
-
-### AI Features (Server-Side)
-
-Three server functions in `ai.functions.ts`:
-- `generateTimetable` — arranges tasks into energy-aligned time blocks.
-- `breakdownGoal` — decomposes a goal into 5–8 subtasks with definitions of done.
-- `diagnoseProcrastination` — analyzes deferral patterns and suggests corrective actions.
-
-All call the **Lovable AI Gateway** (`https://ai.gateway.lovable.dev/v1/chat/completions`) using `LOVABLE_API_KEY`.
+| Table            | Primary Columns                                                                                                                                                        | Purpose                                                |
+| ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------ |
+| `profiles`       | `id`, `email`, `current_streak`, `longest_streak`, `streak_freezes`, `ai_enabled`                                                                                      | User metadata, consistency metrics, and AI preferences |
+| `tasks`          | `id`, `user_id`, `goal_id`, `title`, `domain`, `priority`, `energy_level`, `frequency_type`, `completed_dates`, `estimated_minutes`, `due_date`, `carry_forward_count` | Core task and habit tracking entities                  |
+| `goals`          | `id`, `user_id`, `title`, `domain`, `target_days`, `projected_completion_date`, `is_completed`                                                                         | High-level long-term targets                           |
+| `subtasks`       | `id`, `goal_id`, `title`, `definition_of_done`, `estimated_minutes`, `is_completed`                                                                                    | Concrete milestone steps under parent goals            |
+| `deferral_logs`  | `id`, `task_id`, `user_id`, `reason_category`, `notes`, `logged_at`                                                                                                    | Root-cause logs for postponed tasks                    |
+| `focus_sessions` | `id`, `user_id`, `task_id`, `minutes`, `mode`, `started_at`                                                                                                            | Completed focus sessions and timer records             |
+| `reminders`      | `id`, `user_id`, `label`, `remind_at`, `is_enabled`                                                                                                                    | Custom scheduled time-of-day notification triggers     |
+| `achievements`   | `id`, `user_id`, `badge_key`, `unlocked_at`                                                                                                                            | Unlocked milestone badges                              |
 
 ---
 
-## Lovable Integration Points (to be removed)
+## 6. AI Workspace Server Functions
 
-| # | File / Config                              | What it does                                        |
-|---|-------------------------------------------|-----------------------------------------------------|
-| 1 | `package.json`                            | `@lovable.dev/cloud-auth-js` dependency             |
-| 2 | `package.json` (devDeps)                  | `@lovable.dev/vite-tanstack-config` dependency      |
-| 3 | `vite.config.ts`                          | Imports `defineConfig` from Lovable wrapper          |
-| 4 | `src/integrations/lovable/index.ts`       | OAuth wrapper using `@lovable.dev/cloud-auth-js`    |
-| 5 | `src/routes/auth.tsx`                     | Imports & calls `lovable.auth.signInWithOAuth`      |
-| 6 | `src/lib/lovable-error-reporting.ts`      | Forwards errors to Lovable editor telemetry         |
-| 7 | `src/routes/__root.tsx`                   | Imports & calls `reportLovableError`                |
-| 8 | `src/lib/pwa.ts`                          | Blocks SW registration on Lovable preview domains   |
-| 9 | `src/lib/ascend/ai.functions.ts`          | Uses `LOVABLE_API_KEY` + Lovable AI Gateway URL     |
-| 10| `bunfig.toml`                             | Exempts Lovable packages from release-age guard     |
-| 11| `AGENTS.md`                               | Lovable sync instructions                           |
-| 12| `.lovable/`                               | Lovable project metadata directory                  |
-| 13| `supabase/client.ts`, `client.server.ts`, `auth-middleware.ts` | "Connect Supabase in Lovable Cloud" error messages |
-| 14| `README.md`                               | "Built with Lovable" attribution                    |
+All AI operations are encapsulated in secure server functions in `src/lib/ascend/ai.functions.ts`:
+
+1. **`generateTimetable`**: Takes pending tasks, wake time, and sleep time to synthesize energy-aligned time blocks.
+2. **`breakdownGoal`**: Decomposes a target into 5-8 sequential milestones with explicit "Definition of Done" acceptance criteria.
+3. **`diagnoseProcrastination`**: Evaluates historical delay categories and suggests behavioral interventions.
+4. **`generateWeeklyRetrospective`**: Analyzes weekly completion velocity, peak focus hours, and domain allocation to provide a Sunday recap and timetable adjustments.
 
 ---
 
-## Database Schema (Supabase PostgreSQL)
+## 7. Soundscapes & Web Audio Engine
 
-| Table            | Purpose                                    |
-| ---------------- | ------------------------------------------ |
-| `profiles`       | User profile, streak count, streak freezes |
-| `tasks`          | Habits/tasks with cadence, completion log  |
-| `goals`          | Long-term goals with domain + timeline     |
-| `subtasks`       | Nested steps under goals                   |
-| `deferral_logs`  | Procrastination reason tracking            |
-| `achievements`   | Unlocked badges                            |
-| `focus_sessions` | Pomodoro / timer sessions                  |
-| `reminders`      | Scheduled notifications                    |
+Ambient sounds in `src/lib/ascend/soundscapes.ts` are generated procedurally using the browser's `AudioContext`:
 
-Row Level Security (RLS) is enforced. The server admin client (`client.server.ts`) bypasses RLS for admin operations.
-
----
-
-## Scripts
-
-| Command        | Purpose                        |
-| -------------- | ------------------------------ |
-| `pnpm dev`     | Start Vite dev server          |
-| `pnpm build`   | Production build               |
-| `pnpm preview` | Preview production build       |
-| `pnpm lint`    | Run ESLint                     |
-| `pnpm format`  | Run Prettier                   |
+- **10Hz Alpha Waves**: Dual sine wave oscillators with a 10Hz frequency differential create an auditory binaural beat inducing relaxed focus.
+- **Pink Noise**: Filtered white noise algorithm attenuating high frequencies at 3dB/octave.
+- **Rain & Stream**: Multi-node low-pass and band-pass filters creating realistic atmospheric masking without streaming bandwidth overhead.

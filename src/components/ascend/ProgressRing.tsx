@@ -16,25 +16,41 @@ export function ProgressRing({
   color = "var(--primary)",
   children,
 }: ProgressRingProps) {
-  const radius = (size - stroke) / 2;
+  const safeValue = typeof value === "number" && !Number.isNaN(value) ? value : 0;
+  const pad = Math.max(16, stroke * 2);
+  const svgSize = size + pad * 2;
+  const radius = Math.max(1, (size - stroke) / 2);
   const circumference = 2 * Math.PI * radius;
-  const clamped = Math.max(0, Math.min(1, value));
+  const clamped = Math.max(0, Math.min(1, safeValue));
+  const offset = Number.isNaN(circumference * (1 - clamped)) ? 0 : circumference * (1 - clamped);
 
   return (
-    <div className="relative inline-flex items-center justify-center" style={{ width: size, height: size }}>
-      <svg width={size} height={size} className="-rotate-90">
+    <div
+      className="relative inline-flex items-center justify-center"
+      style={{ width: size, height: size }}
+    >
+      <svg
+        width={svgSize}
+        height={svgSize}
+        viewBox={`0 0 ${svgSize} ${svgSize}`}
+        className="pointer-events-none absolute -rotate-90 overflow-visible"
+        style={{
+          left: -pad,
+          top: -pad,
+        }}
+      >
         <circle
-          cx={size / 2}
-          cy={size / 2}
+          cx={svgSize / 2}
+          cy={svgSize / 2}
           r={radius}
           fill="none"
           strokeWidth={stroke}
-          stroke="var(--muted)"
-          opacity={0.5}
+          stroke="currentColor"
+          className="text-muted/30"
         />
         <motion.circle
-          cx={size / 2}
-          cy={size / 2}
+          cx={svgSize / 2}
+          cy={svgSize / 2}
           r={radius}
           fill="none"
           strokeWidth={stroke}
@@ -42,12 +58,11 @@ export function ProgressRing({
           stroke={color}
           strokeDasharray={circumference}
           initial={{ strokeDashoffset: circumference }}
-          animate={{ strokeDashoffset: circumference * (1 - clamped) }}
+          animate={{ strokeDashoffset: offset }}
           transition={{ type: "spring", stiffness: 90, damping: 20 }}
-          style={{ filter: `drop-shadow(0 0 6px color-mix(in oklab, ${color} 60%, transparent))` }}
         />
       </svg>
-      <div className="absolute inset-0 flex items-center justify-center">{children}</div>
+      <div className="relative z-10 flex items-center justify-center">{children}</div>
     </div>
   );
 }

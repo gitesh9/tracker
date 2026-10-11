@@ -21,8 +21,13 @@ import { presetRange, type DateRange } from "@/lib/ascend/range";
 export const Route = createFileRoute("/_authenticated/achieved")({
   head: () => ({
     meta: [
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
       { title: "Achieved — Ascend" },
-      { name: "description", content: "Your retrospective: milestones hit, tasks cleared and hours invested." },
+      {
+        name: "description",
+        content: "Your retrospective: milestones hit, tasks cleared and hours invested.",
+      },
       { property: "og:title", content: "Achieved — Ascend" },
       { property: "og:description", content: "A shareable summary of everything you've climbed." },
     ],
@@ -49,16 +54,23 @@ function AchievedPage() {
       0,
     );
     const minutes = sessions
-      .filter((s) => (s.started_at ?? "").slice(0, 10) >= from && (s.started_at ?? "").slice(0, 10) <= to)
+      .filter(
+        (s) => (s.started_at ?? "").slice(0, 10) >= from && (s.started_at ?? "").slice(0, 10) <= to,
+      )
       .reduce((n, s) => n + Number(s.minutes ?? 0), 0);
     const subtasksDone = subtasks.filter(
-      (s) => s.is_completed && (s.completed_at ?? "").slice(0, 10) >= from && (s.completed_at ?? "").slice(0, 10) <= to,
+      (s) =>
+        s.is_completed &&
+        (s.completed_at ?? "").slice(0, 10) >= from &&
+        (s.completed_at ?? "").slice(0, 10) <= to,
     ).length;
     const goalsDone = goals.filter((g) => {
       const kids = subtasks.filter((s) => s.goal_id === g.id);
       return kids.length > 0 && kids.every((s) => s.is_completed);
     }).length;
-    const badgesInRange = achievements.filter((a) => (a.unlocked_at ?? "").slice(0, 10) >= from && (a.unlocked_at ?? "").slice(0, 10) <= to);
+    const badgesInRange = achievements.filter(
+      (a) => (a.unlocked_at ?? "").slice(0, 10) >= from && (a.unlocked_at ?? "").slice(0, 10) <= to,
+    );
     const activeDays = new Set(
       tasks.flatMap((t) => (t.completed_dates ?? []).filter((d) => d >= from && d <= to)),
     ).size;
@@ -108,7 +120,9 @@ function AchievedPage() {
       >
         <div className="flex items-baseline justify-between">
           <div>
-            <p className="text-xs uppercase tracking-widest text-muted-foreground">Ascend · {label}</p>
+            <p className="text-xs uppercase tracking-widest text-muted-foreground">
+              Ascend · {label}
+            </p>
             <h2 className="aurora-text font-display text-xl font-semibold">
               {profile?.display_name ? `${profile.display_name}'s climb` : "Your climb"}
             </h2>
@@ -128,7 +142,9 @@ function AchievedPage() {
 
         {stats.badgesInRange.length > 0 && (
           <div>
-            <p className="mb-2 text-xs uppercase tracking-wide text-muted-foreground">Badges unlocked</p>
+            <p className="mb-2 text-xs uppercase tracking-wide text-muted-foreground">
+              Badges unlocked
+            </p>
             <div className="flex flex-wrap gap-2">
               {stats.badgesInRange.map((a) => {
                 const badge = BADGES.find((b) => b.key === a.badge_key);
@@ -145,7 +161,17 @@ function AchievedPage() {
           </div>
         )}
 
-        <p className="text-xs text-muted-foreground">One small ascent every day.</p>
+        {stats.completions === 0 &&
+        stats.minutes === 0 &&
+        stats.subtasksDone === 0 &&
+        stats.goalsDone === 0 ? (
+          <p className="text-xs text-muted-foreground">
+            Nothing logged in this window yet — widen the range or clear a task today and it lands
+            here.
+          </p>
+        ) : (
+          <p className="text-xs text-muted-foreground">One small ascent every day.</p>
+        )}
       </motion.div>
 
       <div className="flex gap-2">
@@ -158,9 +184,15 @@ function AchievedPage() {
       </div>
 
       <section className="space-y-3">
-        <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-          Badge collection
-        </h2>
+        <div className="flex items-baseline justify-between">
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+            Badge collection
+          </h2>
+          <span className="text-xs text-muted-foreground">
+            {BADGES.filter((b) => achievements.some((a) => a.badge_key === b.key)).length} /{" "}
+            {BADGES.length} unlocked
+          </span>
+        </div>
         <div className="grid grid-cols-2 gap-3">
           {BADGES.map((badge) => {
             const owned = achievements.some((a) => a.badge_key === badge.key);

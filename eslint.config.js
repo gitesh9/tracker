@@ -23,7 +23,6 @@ export default tseslint.config(
       "no-restricted-imports": [
         "error",
         {
-          endOfLine: "auto",
           paths: [
             {
               name: "server-only",

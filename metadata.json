@@ -1,0 +1,6 @@
+{
+  "name": "Ascend — Personal Growth Tracker",
+  "description": "One small ascent every day: habits, goals, focus and growth in one calm app.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

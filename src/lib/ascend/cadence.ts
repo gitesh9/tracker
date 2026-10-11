@@ -46,9 +46,7 @@ export function isDueOn(task: Task, iso: string): boolean {
     case "weekly_count": {
       if (isCompletedOn(task, iso)) return true;
       const weekStart = startOfWeekISO(iso);
-      const done = (task.completed_dates ?? []).filter(
-        (d) => d >= weekStart && d <= iso,
-      ).length;
+      const done = (task.completed_dates ?? []).filter((d) => d >= weekStart && d <= iso).length;
       return done < (task.target_days_per_week || 1);
     }
     default:
@@ -85,11 +83,30 @@ export function cadenceLabel(task: Task): string {
 
 /** Streak across all tasks: a day counts when every due task that day was completed. */
 export function computeStreak(tasks: Task[], iso = todayISO()): number {
+  if (!tasks.length) return 0;
+  const indexed = tasks.map((task) => ({
+    task,
+    created: task.created_at ? toISO(new Date(task.created_at)) : "",
+    completed: new Set(task.completed_dates ?? []),
+    weekdays: new Set(task.weekdays ?? []),
+  }));
   let streak = 0;
   let cursor = iso;
   for (let i = 0; i < 400; i++) {
-    const due = tasks.filter((t) => isDueOnHistorical(t, cursor));
-    if (due.length === 0) {
+    const weekday = fromISO(cursor).getDay();
+    let hasDue = false;
+    let allDone = true;
+    for (const { task, created, completed, weekdays } of indexed) {
+      if (created > cursor) continue;
+      const done = completed.has(cursor);
+      const due = task.frequency_type === "daily" ||
+        (task.frequency_type === "weekdays" ? weekdays.has(weekday) :
+          task.frequency_type === "weekly_count" ? done : task.due_date === cursor || done);
+      if (!due) continue;
+      hasDue = true;
+      if (!done) { allDone = false; break; }
+    }
+    if (!hasDue) {
       if (i === 0) {
         cursor = addDays(cursor, -1);
         continue;
@@ -97,7 +114,6 @@ export function computeStreak(tasks: Task[], iso = todayISO()): number {
       cursor = addDays(cursor, -1);
       continue;
     }
-    const allDone = due.every((t) => isCompletedOn(t, cursor));
     if (!allDone) {
       if (i === 0) {
         cursor = addDays(cursor, -1);
@@ -109,20 +125,6 @@ export function computeStreak(tasks: Task[], iso = todayISO()): number {
     cursor = addDays(cursor, -1);
   }
   return streak;
-}
-
-function isDueOnHistorical(task: Task, iso: string): boolean {
-  if (task.created_at && toISO(new Date(task.created_at)) > iso) return false;
-  switch (task.frequency_type) {
-    case "daily":
-      return true;
-    case "weekdays":
-      return (task.weekdays ?? []).includes(fromISO(iso).getDay());
-    case "weekly_count":
-      return isCompletedOn(task, iso);
-    default:
-      return task.due_date === iso || isCompletedOn(task, iso);
-  }
 }
 
 export function completionsInRange(tasks: Task[], from: string, to: string): number {

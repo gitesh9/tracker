@@ -2,7 +2,13 @@ import { useMemo } from "react";
 import { addDays, fromISO, todayISO } from "@/lib/ascend/cadence";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
-export function Heatmap({ counts, weeks = 26 }: { counts: Record<string, number>; weeks?: number }) {
+export function Heatmap({
+  counts,
+  weeks = 26,
+}: {
+  counts: Record<string, number>;
+  weeks?: number;
+}) {
   const days = useMemo(() => {
     const total = weeks * 7;
     const end = todayISO();
@@ -16,7 +22,7 @@ export function Heatmap({ counts, weeks = 26 }: { counts: Record<string, number>
 
   return (
     <TooltipProvider delayDuration={80}>
-      <div className="flex gap-1 overflow-x-auto pb-1">
+      <div className="no-scrollbar flex gap-1 overflow-x-auto pb-1 scroll-smooth">
         {chunk(days, 7).map((week, i) => (
           <div key={i} className="flex flex-col gap-1">
             {week.map((day) => {
@@ -42,7 +48,10 @@ export function Heatmap({ counts, weeks = 26 }: { counts: Record<string, number>
                   <TooltipContent>
                     <span className="text-xs">
                       {count} completed ·{" "}
-                      {fromISO(day).toLocaleDateString(undefined, { month: "short", day: "numeric" })}
+                      {fromISO(day).toLocaleDateString(undefined, {
+                        month: "short",
+                        day: "numeric",
+                      })}
                     </span>
                   </TooltipContent>
                 </Tooltip>

@@ -12,6 +12,12 @@ export const getRouter = () => {
         refetchOnMount: false,
         refetchOnReconnect: true,
         retry: 1,
+        // Every read falls back to the local mirror, so keep running while
+        // the browser reports no connection instead of pausing.
+        networkMode: "always",
+      },
+      mutations: {
+        networkMode: "always",
       },
     },
   });
@@ -20,7 +26,13 @@ export const getRouter = () => {
     routeTree,
     context: { queryClient },
     scrollRestoration: true,
+    defaultPreload: "intent",
+    defaultPreloadDelay: 30,
     defaultPreloadStaleTime: 0,
+    defaultStaleTime: 60 * 1000,
+    // Pages read from in-memory data, so skip the loading flash on quick switches.
+    defaultPendingMs: 1000,
+    defaultPendingMinMs: 0,
   });
 
   return router;

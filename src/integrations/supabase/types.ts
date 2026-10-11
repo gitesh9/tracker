@@ -10,7 +10,7 @@ export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "14.15"
+    PostgrestVersion: "14.5"
   }
   public: {
     Tables: {
@@ -110,6 +110,7 @@ export type Database = {
       }
       goals: {
         Row: {
+          ai_split_accepted: boolean
           created_at: string
           description: string | null
           domain: string
@@ -117,12 +118,16 @@ export type Database = {
           id: string
           is_completed: boolean
           projected_completion_date: string | null
+          status: string
+          target_date: string | null
           target_days: number
           title: string
+          updated_at: string
           user_id: string
           workspace_id: string | null
         }
         Insert: {
+          ai_split_accepted?: boolean
           created_at?: string
           description?: string | null
           domain?: string
@@ -130,12 +135,16 @@ export type Database = {
           id?: string
           is_completed?: boolean
           projected_completion_date?: string | null
+          status?: string
+          target_date?: string | null
           target_days?: number
           title: string
+          updated_at?: string
           user_id: string
           workspace_id?: string | null
         }
         Update: {
+          ai_split_accepted?: boolean
           created_at?: string
           description?: string | null
           domain?: string
@@ -143,8 +152,11 @@ export type Database = {
           id?: string
           is_completed?: boolean
           projected_completion_date?: string | null
+          status?: string
+          target_date?: string | null
           target_days?: number
           title?: string
+          updated_at?: string
           user_id?: string
           workspace_id?: string | null
         }
@@ -169,6 +181,9 @@ export type Database = {
           last_active_date: string | null
           longest_streak: number
           streak_freezes: number
+          theme_preference: string
+          updated_at: string
+          user_id: string | null
         }
         Insert: {
           ai_enabled?: boolean
@@ -180,6 +195,9 @@ export type Database = {
           last_active_date?: string | null
           longest_streak?: number
           streak_freezes?: number
+          theme_preference?: string
+          updated_at?: string
+          user_id?: string | null
         }
         Update: {
           ai_enabled?: boolean
@@ -191,6 +209,9 @@ export type Database = {
           last_active_date?: string | null
           longest_streak?: number
           streak_freezes?: number
+          theme_preference?: string
+          updated_at?: string
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -226,6 +247,7 @@ export type Database = {
           created_at: string
           id: string
           is_enabled: boolean
+          is_sent: boolean
           label: string
           remind_at: string
           task_id: string | null
@@ -235,6 +257,7 @@ export type Database = {
           created_at?: string
           id?: string
           is_enabled?: boolean
+          is_sent?: boolean
           label?: string
           remind_at?: string
           task_id?: string | null
@@ -244,6 +267,7 @@ export type Database = {
           created_at?: string
           id?: string
           is_enabled?: boolean
+          is_sent?: boolean
           label?: string
           remind_at?: string
           task_id?: string | null
@@ -265,12 +289,15 @@ export type Database = {
           created_at: string
           definition_of_done: string | null
           estimated_minutes: number
-          goal_id: string
+          goal_id: string | null
           id: string
           is_completed: boolean
           parent_id: string | null
           position: number
+          target_date: string | null
+          task_id: string | null
           title: string
+          updated_at: string
           user_id: string
         }
         Insert: {
@@ -278,12 +305,15 @@ export type Database = {
           created_at?: string
           definition_of_done?: string | null
           estimated_minutes?: number
-          goal_id: string
+          goal_id?: string | null
           id?: string
           is_completed?: boolean
           parent_id?: string | null
           position?: number
+          target_date?: string | null
+          task_id?: string | null
           title: string
+          updated_at?: string
           user_id: string
         }
         Update: {
@@ -291,12 +321,15 @@ export type Database = {
           created_at?: string
           definition_of_done?: string | null
           estimated_minutes?: number
-          goal_id?: string
+          goal_id?: string | null
           id?: string
           is_completed?: boolean
           parent_id?: string | null
           position?: number
+          target_date?: string | null
+          task_id?: string | null
           title?: string
+          updated_at?: string
           user_id?: string
         }
         Relationships: [
@@ -314,77 +347,102 @@ export type Database = {
             referencedRelation: "subtasks"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "subtasks_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "tasks"
+            referencedColumns: ["id"]
+          },
         ]
       }
       tasks: {
         Row: {
           carry_forward_count: number
+          categories: string[]
           completed_dates: string[]
           created_at: string
           definition_of_done: string | null
+          description: string | null
           domain: string
           due_date: string
           energy_level: string
           estimated_minutes: number
+          frequency_days: number | null
           frequency_type: string
           goal_id: string | null
           icon_name: string
           id: string
           is_ai_enabled: boolean
           is_completed: boolean
+          linked_task_ids: string[]
           notes: string | null
           priority: string
           scheduled_at: string | null
+          target_count: number
           target_days_per_week: number
           title: string
+          updated_at: string
           user_id: string
           weekdays: number[]
           workspace_id: string | null
         }
         Insert: {
           carry_forward_count?: number
+          categories?: string[]
           completed_dates?: string[]
           created_at?: string
           definition_of_done?: string | null
+          description?: string | null
           domain?: string
           due_date?: string
           energy_level?: string
           estimated_minutes?: number
+          frequency_days?: number | null
           frequency_type?: string
           goal_id?: string | null
           icon_name?: string
           id?: string
           is_ai_enabled?: boolean
           is_completed?: boolean
+          linked_task_ids?: string[]
           notes?: string | null
           priority?: string
           scheduled_at?: string | null
+          target_count?: number
           target_days_per_week?: number
           title: string
+          updated_at?: string
           user_id: string
           weekdays?: number[]
           workspace_id?: string | null
         }
         Update: {
           carry_forward_count?: number
+          categories?: string[]
           completed_dates?: string[]
           created_at?: string
           definition_of_done?: string | null
+          description?: string | null
           domain?: string
           due_date?: string
           energy_level?: string
           estimated_minutes?: number
+          frequency_days?: number | null
           frequency_type?: string
           goal_id?: string | null
           icon_name?: string
           id?: string
           is_ai_enabled?: boolean
           is_completed?: boolean
+          linked_task_ids?: string[]
           notes?: string | null
           priority?: string
           scheduled_at?: string | null
+          target_count?: number
           target_days_per_week?: number
           title?: string
+          updated_at?: string
           user_id?: string
           weekdays?: number[]
           workspace_id?: string | null
@@ -486,12 +544,12 @@ export type Tables<
   DefaultSchemaTableNameOrOptions extends
     | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
         DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -515,11 +573,11 @@ export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -540,11 +598,11 @@ export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -565,11 +623,11 @@ export type Enums<
   DefaultSchemaEnumNameOrOptions extends
     | keyof DefaultSchema["Enums"]
     | { schema: keyof DatabaseWithoutInternals },
-  EnumName extends DefaultSchemaEnumNameOrOptions extends {
+  EnumName extends (DefaultSchemaEnumNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaEnumNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -582,11 +640,11 @@ export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
     | keyof DefaultSchema["CompositeTypes"]
     | { schema: keyof DatabaseWithoutInternals },
-  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
+  CompositeTypeName extends (PublicCompositeTypeNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
-    : never = never,
+    : never) = never,
 > = PublicCompositeTypeNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }

@@ -4,13 +4,7 @@ import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/compone
 import { Button } from "@/components/ui/button";
 import type { Badge } from "@/lib/ascend/badges";
 
-export function BadgeModal({
-  badge,
-  onClose,
-}: {
-  badge: Badge | null;
-  onClose: () => void;
-}) {
+export function BadgeModal({ badge, onClose }: { badge: Badge | null; onClose: () => void }) {
   return (
     <Dialog open={badge !== null} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="max-w-xs text-center">
@@ -27,7 +21,9 @@ export function BadgeModal({
             </motion.div>
             <DialogTitle className="font-display text-xl">{badge.label}</DialogTitle>
             <DialogDescription>{badge.description}</DialogDescription>
-            <p className="text-xs uppercase tracking-wide text-muted-foreground">{badge.tier} badge</p>
+            <p className="text-xs uppercase tracking-wide text-muted-foreground">
+              {badge.tier} badge
+            </p>
             <Button onClick={onClose} className="mt-2 w-full">
               Keep climbing
             </Button>

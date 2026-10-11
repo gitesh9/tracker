@@ -44,9 +44,10 @@ export function QuickAdd({
     rec.continuous = false;
     rec.interimResults = true;
     rec.onresult = (event) => {
-      const transcript = Array.from({ length: event.results.length }, (_, i) => event.results[i]![0]!.transcript).join(
-        " ",
-      );
+      const transcript = Array.from(
+        { length: event.results.length },
+        (_, i) => event.results[i]![0]!.transcript,
+      ).join(" ");
       setValue(transcript);
     };
     rec.onend = () => setListening(false);
@@ -101,7 +102,10 @@ export function QuickAdd({
             className={cn("shrink-0 rounded-xl", listening && "text-destructive")}
           >
             {listening ? (
-              <motion.span animate={{ scale: [1, 1.2, 1] }} transition={{ repeat: Infinity, duration: 1 }}>
+              <motion.span
+                animate={{ scale: [1, 1.2, 1] }}
+                transition={{ repeat: Infinity, duration: 1 }}
+              >
                 <MicOff className="size-4" />
               </motion.span>
             ) : (
@@ -135,7 +139,22 @@ export function QuickAdd({
                 <PreviewIcon className="size-3 text-primary" />
                 {preview.title}
               </span>
-              <span className="rounded-full bg-muted px-2 py-1 capitalize text-muted-foreground">{preview.domain}</span>
+              {preview.categories.map((c) => (
+                <span
+                  key={c}
+                  className="rounded-full px-2 py-0.5 capitalize text-xs font-medium border"
+                  style={{
+                    borderColor: "var(--domain-" + c + ", var(--primary))",
+                    color: "var(--domain-" + c + ", var(--primary))",
+                    background:
+                      "color-mix(in oklab, var(--domain-" +
+                      c +
+                      ", var(--primary)) 12%, transparent)",
+                  }}
+                >
+                  #{c}
+                </span>
+              ))}
               {preview.hints.map((hint) => (
                 <span key={hint} className="rounded-full bg-primary/15 px-2 py-1 text-primary">
                   {hint}

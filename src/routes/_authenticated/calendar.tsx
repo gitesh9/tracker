@@ -10,13 +10,19 @@ import { cn } from "@/lib/utils";
 export const Route = createFileRoute("/_authenticated/calendar")({
   head: () => ({
     meta: [
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
       { title: "Calendar & Review — Ascend" },
       {
         name: "description",
-        content: "Month view of everything you completed plus a guided weekly review of wins and slips.",
+        content:
+          "Month view of everything you completed plus a guided weekly review of wins and slips.",
       },
       { property: "og:title", content: "Calendar & Review — Ascend" },
-      { property: "og:description", content: "Zoom out on your month, then close the week properly." },
+      {
+        property: "og:description",
+        content: "Zoom out on your month, then close the week properly.",
+      },
     ],
   }),
   component: CalendarPage,
@@ -36,7 +42,8 @@ function CalendarPage() {
 
   const completionsByDay = useMemo(() => {
     const map: Record<string, number> = {};
-    for (const task of tasks) for (const d of task.completed_dates ?? []) map[d] = (map[d] ?? 0) + 1;
+    for (const task of tasks)
+      for (const d of task.completed_dates ?? []) map[d] = (map[d] ?? 0) + 1;
     return map;
   }, [tasks]);
 
@@ -67,7 +74,10 @@ function CalendarPage() {
   const selectedTasks = useMemo(
     () =>
       tasks.filter(
-        (t) => (t.completed_dates ?? []).includes(selected) || isDueOn(t, selected) || t.due_date === selected,
+        (t) =>
+          (t.completed_dates ?? []).includes(selected) ||
+          isDueOn(t, selected) ||
+          t.due_date === selected,
       ),
     [tasks, selected],
   );
@@ -83,7 +93,9 @@ function CalendarPage() {
     const done = sumRange(completionsByDay, weekStart, weekEnd);
     const prevDone = sumRange(completionsByDay, prevStart, addDays(prevStart, 6));
     const minutes = Math.round(sumRange(minutesByDay, weekStart, weekEnd));
-    const activeDays = Object.keys(completionsByDay).filter((d) => d >= weekStart && d <= weekEnd).length;
+    const activeDays = Object.keys(completionsByDay).filter(
+      (d) => d >= weekStart && d <= weekEnd,
+    ).length;
     const slips = deferrals.filter((d) => {
       const day = (d.logged_at ?? "").slice(0, 10);
       return day >= weekStart && day <= weekEnd;
@@ -116,12 +128,19 @@ function CalendarPage() {
     <div className="space-y-6">
       <header>
         <p className="text-sm text-muted-foreground">Zoom out</p>
-        <h1 className="font-display text-2xl font-semibold tracking-tight">Calendar &amp; Review</h1>
+        <h1 className="font-display text-2xl font-semibold tracking-tight">
+          Calendar &amp; Review
+        </h1>
       </header>
 
       <section className="glass-panel space-y-3 rounded-2xl p-4">
         <div className="flex items-center justify-between">
-          <Button size="icon" variant="ghost" aria-label="Previous month" onClick={() => shiftMonth(-1)}>
+          <Button
+            size="icon"
+            variant="ghost"
+            aria-label="Previous month"
+            onClick={() => shiftMonth(-1)}
+          >
             <ChevronLeft className="size-4" />
           </Button>
           <p className="font-display text-sm font-semibold">
@@ -134,6 +153,20 @@ function CalendarPage() {
             <ChevronRight className="size-4" />
           </Button>
         </div>
+
+        {monthAnchor !== today.slice(0, 7) && (
+          <div className="flex justify-center">
+            <button
+              onClick={() => {
+                setMonthAnchor(today.slice(0, 7));
+                setSelected(today);
+              }}
+              className="rounded-full border border-border bg-surface-raised/60 px-3 py-1 text-[11px] text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              Jump back to this month
+            </button>
+          </div>
+        )}
 
         <div className="grid grid-cols-7 gap-1 text-center text-[10px] uppercase tracking-wide text-muted-foreground">
           {WEEKDAYS.map((d) => (
@@ -152,26 +185,58 @@ function CalendarPage() {
                 key={day}
                 onClick={() => setSelected(day)}
                 className={cn(
-                  "relative aspect-square rounded-xl border text-xs transition-colors",
-                  isSelected ? "border-primary" : "border-transparent",
+                  "relative flex aspect-square flex-col items-center justify-center rounded-xl border p-0.5 text-xs transition-all hover:bg-surface-raised/70",
+                  isSelected ? "border-primary bg-primary/10 shadow-sm" : "border-transparent",
                   outside ? "opacity-35" : "",
-                  count === 0 ? "bg-muted/30" : "",
+                  count === 0 && !isSelected ? "bg-muted/25" : "",
                 )}
                 style={
-                  count > 0
-                    ? { background: `color-mix(in oklab, var(--primary) ${20 + (count / maxCount) * 60}%, transparent)` }
+                  count > 0 && !isSelected
+                    ? {
+                        background: `color-mix(in oklab, var(--primary) ${15 + (count / maxCount) * 45}%, transparent)`,
+                      }
                     : undefined
                 }
               >
-                <span className={cn("absolute left-1.5 top-1", isToday && "font-semibold text-primary")}>
+                <span
+                  className={cn(
+                    "flex size-6 sm:size-7 items-center justify-center rounded-full text-xs transition-all",
+                    isSelected
+                      ? "bg-primary font-bold text-primary-foreground shadow-sm"
+                      : isToday
+                        ? "border border-primary text-primary font-bold"
+                        : "text-foreground font-medium",
+                  )}
+                >
                   {Number(day.slice(8))}
                 </span>
                 {count > 0 && (
-                  <span className="absolute bottom-1 right-1.5 text-[10px] text-foreground/80">{count}</span>
+                  <span
+                    className={cn(
+                      "mt-0.5 text-[9px] font-semibold leading-none",
+                      isSelected ? "text-primary font-bold" : "text-primary/90",
+                    )}
+                  >
+                    {count}
+                  </span>
                 )}
               </button>
             );
           })}
+        </div>
+
+        <div className="flex items-center justify-end gap-2 pt-1 text-[10px] text-muted-foreground">
+          <span>Fewer</span>
+          {[0, 0.25, 0.5, 0.75, 1].map((step) => (
+            <span
+              key={step}
+              className="size-3 rounded-[4px] border border-border/60"
+              style={{
+                background: `color-mix(in oklab, var(--primary) ${step === 0 ? 0 : 15 + step * 45}%, transparent)`,
+              }}
+            />
+          ))}
+          <span>More</span>
         </div>
       </section>
 
@@ -201,11 +266,22 @@ function CalendarPage() {
             {selectedTasks.map((t) => {
               const done = (t.completed_dates ?? []).includes(selected);
               return (
-                <li key={t.id} className="flex items-center gap-2 rounded-xl bg-muted/40 px-3 py-2 text-sm">
+                <li
+                  key={t.id}
+                  className="flex items-center gap-2 rounded-xl bg-muted/40 px-3 py-2 text-sm"
+                >
                   <span
-                    className={cn("size-2 rounded-full", done ? "bg-primary" : "bg-muted-foreground/50")}
+                    className={cn(
+                      "size-2 rounded-full",
+                      done ? "bg-primary" : "bg-muted-foreground/50",
+                    )}
                   />
-                  <span className={cn("min-w-0 flex-1 truncate", done && "text-muted-foreground line-through")}>
+                  <span
+                    className={cn(
+                      "min-w-0 flex-1 truncate",
+                      done && "text-muted-foreground line-through",
+                    )}
+                  >
                     {t.title}
                   </span>
                   <span className="text-[11px] capitalize text-muted-foreground">{t.domain}</span>
@@ -219,14 +295,29 @@ function CalendarPage() {
       <section className="glass-panel space-y-4 rounded-2xl p-4">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-sm font-semibold">Weekly review</h2>
+            <h2 className="text-sm font-semibold">
+              {weekOffset === 0 ? "This week" : weekOffset === -1 ? "Last week" : "Weekly review"}
+            </h2>
             <p className="text-xs text-muted-foreground">
-              {fromISO(weekStart).toLocaleDateString(undefined, { month: "short", day: "numeric" })} –{" "}
-              {fromISO(weekEnd).toLocaleDateString(undefined, { month: "short", day: "numeric" })}
+              {fromISO(weekStart).toLocaleDateString(undefined, { month: "short", day: "numeric" })}{" "}
+              – {fromISO(weekEnd).toLocaleDateString(undefined, { month: "short", day: "numeric" })}
             </p>
           </div>
-          <div className="flex gap-1">
-            <Button size="icon" variant="ghost" aria-label="Previous week" onClick={() => setWeekOffset((w) => w - 1)}>
+          <div className="flex items-center gap-1">
+            {weekOffset !== 0 && (
+              <button
+                onClick={() => setWeekOffset(0)}
+                className="rounded-full border border-border px-2.5 py-1 text-[11px] text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              >
+                This week
+              </button>
+            )}
+            <Button
+              size="icon"
+              variant="ghost"
+              aria-label="Previous week"
+              onClick={() => setWeekOffset((w) => w - 1)}
+            >
               <ChevronLeft className="size-4" />
             </Button>
             <Button
@@ -279,7 +370,9 @@ function CalendarPage() {
         </div>
 
         <div>
-          <p className="mb-2 text-xs uppercase tracking-wide text-muted-foreground">Needs a decision</p>
+          <p className="mb-2 text-xs uppercase tracking-wide text-muted-foreground">
+            Needs a decision
+          </p>
           {review.stalled.length === 0 ? (
             <p className="text-sm text-muted-foreground">Nothing stalled — clean week.</p>
           ) : (
@@ -295,8 +388,8 @@ function CalendarPage() {
 
         {review.slips.length > 0 && (
           <p className="text-xs text-muted-foreground">
-            {review.slips.length} deferral{review.slips.length === 1 ? "" : "s"} logged this week — check
-            Insights for the pattern.
+            {review.slips.length} deferral{review.slips.length === 1 ? "" : "s"} logged this week —
+            check Insights for the pattern.
           </p>
         )}
       </section>

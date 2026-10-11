@@ -22,7 +22,7 @@ export function RangeSelector({
 
   return (
     <div className="space-y-2">
-      <div className="glass-panel flex w-full items-center gap-1 overflow-x-auto rounded-full p-1">
+      <div className="glass-panel no-scrollbar flex w-full items-center gap-1 overflow-x-auto rounded-full p-1 scroll-smooth">
         {RANGE_PRESETS.map((preset) => {
           const active = value.key === preset.key;
           return (
@@ -30,7 +30,7 @@ export function RangeSelector({
               key={preset.key}
               onClick={() => onChange(presetRange(preset.key))}
               className={cn(
-                "relative shrink-0 rounded-full px-3.5 py-2 text-xs font-medium transition-colors",
+                "relative shrink-0 rounded-full px-3.5 py-2 text-xs font-medium whitespace-nowrap transition-colors",
                 active ? "text-primary-foreground" : "text-muted-foreground hover:text-foreground",
               )}
             >
@@ -52,7 +52,7 @@ export function RangeSelector({
             <button
               aria-label="Custom date range"
               className={cn(
-                "relative ml-auto shrink-0 rounded-full px-3.5 py-2 text-xs font-medium transition-colors",
+                "relative ml-auto shrink-0 rounded-full px-3.5 py-2 text-xs font-medium whitespace-nowrap transition-colors",
                 value.key === "custom"
                   ? "text-primary-foreground"
                   : "text-muted-foreground hover:text-foreground",

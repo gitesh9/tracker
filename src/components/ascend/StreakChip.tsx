@@ -13,7 +13,10 @@ export function StreakChip({ streak, freezes }: { streak: number; freezes: numbe
           className="size-4"
           style={{
             color: streak > 0 ? "var(--warning)" : "var(--muted-foreground)",
-            filter: streak > 0 ? "drop-shadow(0 0 8px color-mix(in oklab, var(--warning) 70%, transparent))" : "none",
+            filter:
+              streak > 0
+                ? "drop-shadow(0 0 8px color-mix(in oklab, var(--warning) 70%, transparent))"
+                : "none",
           }}
         />
         {streak}
