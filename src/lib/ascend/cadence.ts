@@ -11,7 +11,7 @@ export function toISO(date: Date): string {
 
 export function fromISO(iso: string): Date {
   const [y, m, d] = iso.split("-").map(Number);
-  return new Date(y!, (m ?? 1) - 1, d ?? 1);
+  return new Date(y ?? 1970, (m ?? 1) - 1, d ?? 1);
 }
 
 export function addDays(iso: string, days: number): string {
@@ -38,9 +38,10 @@ export function isCompletedOn(task: Task, iso: string): boolean {
 /** Is the task expected on this date given its cadence? */
 export function isDueOn(task: Task, iso: string): boolean {
   if (task.is_completed) return false;
+  if (iso < task.due_date) return false;
   switch (task.frequency_type) {
     case "daily":
-      return true;
+      return daysBetween(task.due_date, iso) % Math.max(1, task.frequency_days || 1) === 0;
     case "weekdays":
       return (task.weekdays ?? []).includes(fromISO(iso).getDay());
     case "weekly_count": {
@@ -71,7 +72,7 @@ export function cadenceLabel(task: Task): string {
   const names = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
   switch (task.frequency_type) {
     case "daily":
-      return "Daily";
+      return (task.frequency_days || 1) === 1 ? "Daily" : task.frequency_days === 2 ? "Alternate days" : `Every ${task.frequency_days} days`;
     case "weekly_count":
       return `${task.target_days_per_week}× per week`;
     case "weekdays":
@@ -97,9 +98,9 @@ export function computeStreak(tasks: Task[], iso = todayISO()): number {
     let hasDue = false;
     let allDone = true;
     for (const { task, created, completed, weekdays } of indexed) {
-      if (created > cursor) continue;
+      if (created > cursor || task.due_date > cursor) continue;
       const done = completed.has(cursor);
-      const due = task.frequency_type === "daily" ||
+      const due = (task.frequency_type === "daily" && daysBetween(task.due_date, cursor) % Math.max(1, task.frequency_days || 1) === 0) ||
         (task.frequency_type === "weekdays" ? weekdays.has(weekday) :
           task.frequency_type === "weekly_count" ? done : task.due_date === cursor || done);
       if (!due) continue;

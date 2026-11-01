@@ -1,11 +1,11 @@
 import { useMemo, useRef, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { motion } from "motion/react";
-import { toPng } from "html-to-image";
 import { toast } from "sonner";
 import { Award, Clock, Download, Flame, Share2, Target, Trophy } from "lucide-react";
 import { RangeSelector } from "@/components/ascend/RangeSelector";
 import { Button } from "@/components/ui/button";
+import { EmptyState } from "@/components/ascend/EmptyState";
 import {
   useAchievements,
   useFocusSessions,
@@ -82,7 +82,7 @@ function AchievedPage() {
   const exportCard = async (share: boolean) => {
     if (!cardRef.current) return;
     try {
-      const dataUrl = await toPng(cardRef.current, { pixelRatio: 2, cacheBust: true });
+      const dataUrl = await (await import("html-to-image")).toPng(cardRef.current, { pixelRatio: 2, cacheBust: true });
       const blob = await (await fetch(dataUrl)).blob();
       const file = new File([blob], "ascend-retrospective.png", { type: "image/png" });
       if (share && navigator.canShare?.({ files: [file] })) {
@@ -116,10 +116,10 @@ function AchievedPage() {
         key={`${range.from}-${range.to}`}
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
-        className="glass-panel space-y-5 rounded-3xl p-6"
+        className="glass-panel space-y-5 rounded-2xl p-4 sm:p-6"
       >
-        <div className="flex items-baseline justify-between">
-          <div>
+        <div className="flex items-baseline justify-between gap-3">
+          <div className="min-w-0">
             <p className="text-xs uppercase tracking-widest text-muted-foreground">
               Ascend · {label}
             </p>
@@ -127,7 +127,7 @@ function AchievedPage() {
               {profile?.display_name ? `${profile.display_name}'s climb` : "Your climb"}
             </h2>
           </div>
-          <div className="flex items-center gap-1 text-sm text-muted-foreground">
+          <div className="flex shrink-0 items-center gap-1 text-sm text-muted-foreground">
             <Flame className="size-4 text-primary" />
             {profile?.current_streak ?? 0}d
           </div>
@@ -165,10 +165,7 @@ function AchievedPage() {
         stats.minutes === 0 &&
         stats.subtasksDone === 0 &&
         stats.goalsDone === 0 ? (
-          <p className="text-xs text-muted-foreground">
-            Nothing logged in this window yet — widen the range or clear a task today and it lands
-            here.
-          </p>
+          <EmptyState icon={Trophy} title="No activity in this window" />
         ) : (
           <p className="text-xs text-muted-foreground">One small ascent every day.</p>
         )}

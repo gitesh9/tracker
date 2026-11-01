@@ -58,6 +58,7 @@ export function EditTaskDialog({
   const [newCustomCategory, setNewCustomCategory] = useState("");
   const [showCustomInput, setShowCustomInput] = useState(false);
   const [frequencyType, setFrequencyType] = useState<string>("daily");
+  const [frequencyDays, setFrequencyDays] = useState(1);
   const [targetDaysPerWeek, setTargetDaysPerWeek] = useState(3);
   const [weekdays, setWeekdays] = useState<number[]>([]);
   const [estimatedMinutes, setEstimatedMinutes] = useState(25);
@@ -93,6 +94,7 @@ export function EditTaskDialog({
       const cats = getTaskCategories(task);
       setSelectedCategories(cats.length > 0 ? cats : [(task.domain as string) || "focus"]);
       setFrequencyType(task.frequency_type ?? "daily");
+      setFrequencyDays(task.frequency_days || 1);
       setTargetDaysPerWeek(task.target_days_per_week ?? 3);
       setWeekdays(task.weekdays ?? []);
       setEstimatedMinutes(task.estimated_minutes ?? 25);
@@ -176,6 +178,7 @@ export function EditTaskDialog({
       domain: primaryDomain,
       categories: selectedCategories.length > 0 ? selectedCategories : [primaryDomain],
       frequency_type: frequencyType,
+      frequency_days: frequencyType === "daily" ? frequencyDays : null,
       target_days_per_week: frequencyType === "weekly_count" ? targetDaysPerWeek : 0,
       weekdays: frequencyType === "weekdays" ? weekdays : [],
       estimated_minutes: Number(estimatedMinutes) || 25,
@@ -461,6 +464,15 @@ export function EditTaskDialog({
                   }
                   className="h-8 w-20 text-center"
                 />
+              </div>
+            )}
+
+            {frequencyType === "daily" && (
+              <div className="mt-2 flex items-center gap-2 text-xs">
+                <Label htmlFor="repeat-days-input">Repeat every (days)</Label>
+                <Input id="repeat-days-input" type="number" min={1} max={365} value={frequencyDays}
+                  onChange={(e) => setFrequencyDays(Math.min(365, Math.max(1, Number(e.target.value) || 1)))}
+                  className="h-8 w-20 text-center" />
               </div>
             )}
 

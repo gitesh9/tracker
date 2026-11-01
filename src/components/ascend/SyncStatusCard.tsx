@@ -65,11 +65,11 @@ export function SyncStatusCard() {
       : relative(status.at, now);
 
   return (
-    <section className="glass-panel flex items-center gap-3 rounded-2xl p-4">
+    <section className="glass-panel flex flex-wrap items-center gap-3 rounded-2xl p-4">
       <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-primary/12 text-primary">
         {offline || !status.configured ? <CloudOff className="size-5" /> : <Cloud className="size-5" />}
       </span>
-      <div className="min-w-0 flex-1">
+      <div className="min-w-0 flex-1 basis-36">
         <p className="text-sm font-medium">{line}</p>
         <p className="text-xs text-muted-foreground">
           {pending > 0

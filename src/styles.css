@@ -241,8 +241,17 @@
   *::before,
   *::after {
     animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
+}
+
+.ascend-page > div > div > header {
+  row-gap: 0.75rem;
+}
+
+.ascend-page p, .ascend-page h1, .ascend-page h2 {
+  overflow-wrap: anywhere;
 }
 
 @theme inline {

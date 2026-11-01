@@ -1,3 +1,4 @@
+import { WeeklyRecapCard } from "@/components/ascend/WeeklyRecapCard";
 import { useMemo, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
@@ -270,6 +271,8 @@ function InsightsPage() {
           Longest streak {profile?.longest_streak ?? 0} days · pick any window, any angle
         </p>
       </header>
+
+      <WeeklyRecapCard tasks={tasks} />
 
       <RangeSelector value={range} onChange={setRange} />
 
@@ -692,7 +695,7 @@ function Chip({
 }
 
 function Empty({ children }: { children: React.ReactNode }) {
-  return <p className="text-sm text-muted-foreground">{children}</p>;
+  return <p className="flex min-h-32 items-center justify-center px-3 py-6 text-center text-sm leading-relaxed text-muted-foreground">{children}</p>;
 }
 
 function Stat({

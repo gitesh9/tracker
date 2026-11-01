@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { useDeferrals, useFocusSessions, useTasks } from "@/lib/ascend/queries";
 import { addDays, fromISO, isDueOn, startOfWeekISO, toISO, todayISO } from "@/lib/ascend/cadence";
 import { cn } from "@/lib/utils";
+import { EmptyState } from "@/components/ascend/EmptyState";
 
 export const Route = createFileRoute("/_authenticated/calendar")({
   head: () => ({
@@ -246,7 +247,7 @@ function CalendarPage() {
         animate={{ opacity: 1, y: 0 }}
         className="glass-panel space-y-3 rounded-2xl p-4"
       >
-        <div className="flex items-baseline justify-between">
+        <div className="flex flex-wrap items-baseline justify-between gap-2">
           <h2 className="text-sm font-semibold">
             {fromISO(selected).toLocaleDateString(undefined, {
               weekday: "long",
@@ -260,7 +261,7 @@ function CalendarPage() {
           </span>
         </div>
         {selectedTasks.length === 0 ? (
-          <p className="text-sm text-muted-foreground">Nothing logged or scheduled on this day.</p>
+          <EmptyState icon={Clock} title="Nothing logged or scheduled on this day" />
         ) : (
           <ul className="space-y-1.5">
             {selectedTasks.map((t) => {
@@ -278,7 +279,7 @@ function CalendarPage() {
                   />
                   <span
                     className={cn(
-                      "min-w-0 flex-1 truncate",
+                      "min-w-0 flex-1 break-words",
                       done && "text-muted-foreground line-through",
                     )}
                   >

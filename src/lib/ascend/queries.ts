@@ -457,21 +457,8 @@ export function useSaveGoal() {
       const user = await getAuthSessionUser();
       if (!user) return localDB.saveGoal(goalWithId);
 
-      const isExisting = Boolean(input.id) && localDB.getGoals().some((g) => g.id === input.id);
-      if (isExisting) {
-        const { id: _id, ...patch } = input;
-        const data = await runRemote(
-          {
-            kind: "update",
-            table: "goals",
-            rowId: goalId,
-            patch: patch as Record<string, unknown>,
-          },
-          () => db.from("goals").update(patch).eq("id", goalId).select().maybeSingle(),
-        );
-        return localDB.saveGoal(data ?? goalWithId);
-      }
-
+      // onMutate has already inserted into the working copy. That does not prove
+      // a durable row exists: use upsert for both first save and later saves.
       const localRow = localDB.saveGoal({ ...goalWithId, user_id: user.id });
       const row = { ...localRow, id: goalId, user_id: user.id };
       const data = await runRemote({ kind: "upsert", table: "goals", rowId: goalId, row }, () =>

@@ -8,7 +8,8 @@ import {
   Scripts,
   type ErrorComponentProps,
 } from "@tanstack/react-router";
-import { useEffect, type ReactNode } from "react";
+import { Suspense, useEffect, type ReactNode } from "react";
+import { PageLoading } from "@/components/ascend/PageLoading";
 
 import appCss from "../styles.css?url";
 import { Toaster } from "@/components/ui/sonner";
@@ -131,7 +132,7 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <Outlet />
+      <Suspense fallback={<PageLoading fullScreen />}><Outlet /></Suspense>
       <Toaster position="top-center" />
     </QueryClientProvider>
   );

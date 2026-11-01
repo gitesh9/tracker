@@ -1,3 +1,4 @@
+import { getDemoIds } from "@/lib/ascend/demo";
 /**
  * Optional remote sync. Everything here is best-effort: when there is no network,
  * or no DATABASE_URL configured on the server, the app keeps running purely on the
@@ -64,7 +65,9 @@ async function fullUploadOps(): Promise<WireOp[]> {
   if (!isLocalDbAvailable()) return [];
   const rows = await localChangesSince(EPOCH);
   // Squads are shared with other people through their own endpoint, not per-account sync.
-  return rows.filter((r) => r.table !== "squads").map((r) =>
+  // Sample data stays on this device only.
+  const demo = new Set(getDemoIds());
+  return rows.filter((r) => r.table !== "squads" && !demo.has(r.id)).map((r) =>
     r.deleted
       ? { kind: "delete", table: r.table, id: r.id }
       : { kind: "upsert", table: r.table, id: r.id, row: r.data, at: Date.parse(r.updated_at) || 1 },

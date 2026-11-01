@@ -1,6 +1,7 @@
 import { QueryClient } from "@tanstack/react-query";
 import { createRouter } from "@tanstack/react-router";
 import { routeTree } from "./routeTree.gen";
+import { PageLoading } from "./components/ascend/PageLoading";
 
 export const getRouter = () => {
   const queryClient = new QueryClient({
@@ -33,6 +34,7 @@ export const getRouter = () => {
     // Pages read from in-memory data, so skip the loading flash on quick switches.
     defaultPendingMs: 1000,
     defaultPendingMinMs: 0,
+    defaultPendingComponent: PageLoading,
   });
 
   return router;

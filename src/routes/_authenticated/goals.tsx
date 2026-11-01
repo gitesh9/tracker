@@ -26,9 +26,11 @@ import {
   useSubtasks,
   useUpdateGoal,
   useUpdateSubtask,
+  useTasks,
 } from "@/lib/ascend/queries";
-import { goalVelocity, fromISO, todayISO } from "@/lib/ascend/cadence";
-import { breakdownGoal } from "@/lib/ascend/ai.functions";
+import { goalVelocity, fromISO, todayISO, cadenceLabel, addDays } from "@/lib/ascend/cadence";
+import { goalStepTask } from "@/lib/ascend/goal-plan";
+import { breakdownGoal, generateGoalMilestones } from "@/lib/ascend/ai.functions";
 import { DOMAINS, DOMAIN_TOKEN, type Domain, type Goal, type Subtask } from "@/lib/ascend/types";
 import { iconFor } from "@/lib/ascend/icons";
 import { EditGoalDialog } from "@/components/ascend/EditGoalDialog";
@@ -46,8 +48,10 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
+import { EmptyState } from "@/components/ascend/EmptyState";
 
 export const Route = createFileRoute("/_authenticated/goals")({
+  validateSearch: (search: Record<string, unknown>) => ({ goal: typeof search["goal"] === "string" ? search["goal"] : undefined }),
   head: () => ({
     meta: [
       { property: "og:type", content: "website" },
@@ -65,8 +69,10 @@ export const Route = createFileRoute("/_authenticated/goals")({
 });
 
 function GoalsPage() {
+  const search = Route.useSearch();
   const { data: goals = [] } = useGoals();
   const { data: subtasks = [] } = useSubtasks();
+  const { data: tasks = [] } = useTasks();
   const saveGoal = useSaveGoal();
   const updateGoal = useUpdateGoal();
   const deleteGoal = useDeleteGoal();
@@ -75,13 +81,14 @@ function GoalsPage() {
   const deleteSubtask = useDeleteSubtask();
   const createTask = useCreateTask();
   const breakdown = useServerFn(breakdownGoal);
+  const milestonesAi = useServerFn(generateGoalMilestones);
 
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [domain, setDomain] = useState<Domain>("career");
   const [targetDays, setTargetDays] = useState(90);
-  const [expanded, setExpanded] = useState<string | null>(null);
+  const [expanded, setExpanded] = useState<string | null>(search.goal ?? null);
   const [busyGoal, setBusyGoal] = useState<string | null>(null);
   const [editingGoal, setEditingGoal] = useState<Goal | null>(null);
 
@@ -89,6 +96,19 @@ function GoalsPage() {
   const [addingMilestoneGoalId, setAddingMilestoneGoalId] = useState<string | null>(null);
   const [newMilestoneTitle, setNewMilestoneTitle] = useState("");
   const [newMilestoneDod, setNewMilestoneDod] = useState("");
+  const [confirmingMilestone, setConfirmingMilestone] = useState<Subtask | null>(null);
+
+  const runMilestones = async (goal: Goal) => {
+    if (busyGoal) return;
+    setBusyGoal(goal.id);
+    try {
+      const items = subtasks.filter((s) => s.goal_id === goal.id);
+      const result = await milestonesAi({ data: { title: goal.title, description: goal.description ?? "", targetDays: goal.target_days, existingSteps: items.map((s) => s.title) } });
+      await saveSubtasks.mutateAsync(result.milestones.map((m, i) => ({ goal_id: goal.id, title: m.title, definition_of_done: m.definition_of_done, target_date: addDays(todayISO(), m.target_day), position: items.length + i })));
+      toast.success(`${result.milestones.length} milestones added`);
+    } catch (err) { toast.error(err instanceof Error ? err.message : "Milestone planning failed"); }
+    finally { setBusyGoal(null); }
+  };
 
   const create = async () => {
     if (!title.trim()) return;
@@ -149,25 +169,34 @@ function GoalsPage() {
     goalDesc: string,
     days: number,
   ) => {
+    if (busyGoal) return;
+    const goal = goals.find((g) => g.id === goalId);
+    if (!goal) return;
     setBusyGoal(goalId);
     try {
       const result = await breakdown({
-        data: { title: goalTitle, description: goalDesc, targetDays: days },
+        data: { title: goalTitle, description: goalDesc, targetDays: days, domain: goal.domain,
+          existingSteps: subtasks.filter((s) => s.goal_id === goalId).map((s) => s.title) },
       });
       if (result.subtasks.length === 0) {
         toast("AI couldn't split this one — try a more specific goal.");
         return;
       }
-      await saveSubtasks.mutateAsync(
-        result.subtasks.map((s, i) => ({
+      const startDate = todayISO();
+      const position = subtasks.filter((s) => s.goal_id === goalId).length;
+      for (const [i, s] of result.subtasks.entries()) {
+        const task = await createTask.mutateAsync(goalStepTask(s, goal, startDate));
+        await saveSubtasks.mutateAsync([{
           goal_id: goalId,
+          task_id: task.id,
           title: s.title,
           definition_of_done: s.definition_of_done,
           estimated_minutes: s.estimated_minutes,
-          position: i,
-        })),
-      );
-      toast.success(`${result.subtasks.length} milestones added`);
+          target_date: task.due_date,
+          position: position + i,
+        }]);
+      }
+      toast.success(`${result.subtasks.length} steps scheduled`);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Breakdown failed");
     } finally {
@@ -287,15 +316,7 @@ function GoalsPage() {
       </header>
 
       {goals.length === 0 && (
-        <div className="rounded-2xl border border-dashed border-border p-10 text-center">
-          <span className="mx-auto flex size-12 items-center justify-center rounded-2xl bg-primary/10 text-primary">
-            <Target className="size-6" />
-          </span>
-          <p className="mt-4 font-display text-lg font-semibold">Name your first summit</p>
-          <p className="mx-auto mt-1 max-w-sm text-sm text-muted-foreground">
-            Set a goal with a horizon, then break it into milestones — Ascend projects your finish
-            date from your real pace.
-          </p>
+        <EmptyState icon={Target} title="Name your first summit">
           <Button
             className="mt-5 font-semibold"
             style={{ backgroundImage: "var(--gradient-aurora)" }}
@@ -303,13 +324,14 @@ function GoalsPage() {
           >
             <Plus className="size-4" /> Create a goal
           </Button>
-        </div>
+        </EmptyState>
       )}
 
       <div className="space-y-4">
         {goals.map((goal) => {
-          const items = subtasks.filter((s) => s.goal_id === goal.id);
-          const v = goalVelocity(goal, items);
+          const items = subtasks.filter((s) => s.goal_id === goal.id).sort((a, b) => Number(Boolean(b.task_id)) - Number(Boolean(a.task_id)) || a.position - b.position);
+          const milestoneItems = items.filter((s) => !s.task_id);
+          const v = goalVelocity(goal, milestoneItems);
           const isOpen = expanded === goal.id;
           const goalDomain = (goal.domain as Domain) || "career";
           const domainColor = DOMAIN_TOKEN[goalDomain] ?? "var(--primary)";
@@ -321,14 +343,14 @@ function GoalsPage() {
               key={goal.id}
               className="rounded-2xl border border-border bg-surface p-4 transition-all duration-200 hover:border-primary/40 hover:bg-surface-raised/60 hover:shadow-md"
             >
-              <div className="flex items-start gap-4">
+              <div className="flex flex-wrap items-start gap-3">
                 <ProgressRing value={v.ratio} size={64} stroke={6}>
                   <span className="font-display text-sm font-semibold">
                     {Math.round(v.ratio * 100)}%
                   </span>
                 </ProgressRing>
 
-                <div className="min-w-0 flex-1">
+                <div className="min-w-0 flex-1 basis-36">
                   <div className="flex items-center gap-2">
                     <span
                       className="flex size-5 items-center justify-center rounded"
@@ -336,7 +358,7 @@ function GoalsPage() {
                     >
                       <GoalIcon className="size-4" />
                     </span>
-                    <h2 className="font-display text-lg font-semibold leading-tight text-foreground truncate">
+                    <h2 className="min-w-0 break-words font-display text-lg font-semibold leading-tight text-foreground">
                       {goal.title}
                     </h2>
                   </div>
@@ -345,7 +367,7 @@ function GoalsPage() {
                     <span className="capitalize font-medium" style={{ color: domainColor }}>
                       {goalDomain}
                     </span>{" "}
-                    · {v.done}/{v.total} milestones ·{" "}
+                    · {v.done}/{v.total} milestones · {items.length - milestoneItems.length} actions ·{" "}
                     <span
                       className={
                         v.onTrack ? "text-primary font-medium" : "text-warning font-medium"
@@ -423,19 +445,20 @@ function GoalsPage() {
                         </p>
                       )}
 
-                      {items.map((s) => (
+                      {items.map((s) => {
+                        const scheduledTask = tasks.find((t) => t.id === s.task_id);
+                        return (
                         <div
                           key={s.id}
                           className="flex items-start gap-3 rounded-xl bg-muted/30 p-3 border border-border/40 group hover:border-primary/30 transition-colors"
                         >
-                          <button
+                          {scheduledTask ? <span className="mt-0.5 flex size-5 shrink-0 items-center justify-center text-primary"><CalendarPlus className="size-4" /></span> : <Button
+                            variant="ghost"
+                            size="icon"
                             type="button"
-                            onClick={() =>
-                              updateSubtask.mutate({
-                                id: s.id,
-                                patch: { is_completed: !s.is_completed },
-                              })
-                            }
+                            onClick={() => s.is_completed
+                              ? updateSubtask.mutate({ id: s.id, patch: { is_completed: false, completed_at: null } })
+                              : setConfirmingMilestone(s)}
                             aria-label={`Toggle milestone "${s.title}"`}
                             className={cn(
                               "mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-md border transition-colors cursor-pointer",
@@ -450,8 +473,9 @@ function GoalsPage() {
                             {s.is_completed && (
                               <Check className="size-3 text-primary-foreground" strokeWidth={3} />
                             )}
-                          </button>
+                          </Button>}
                           <div className="min-w-0 flex-1">
+                            <p className="mb-1 text-[10px] font-semibold uppercase text-muted-foreground">{scheduledTask ? "Scheduled action" : "Milestone · Your confirmation"}</p>
                             <p
                               className={cn(
                                 "text-sm font-medium",
@@ -465,10 +489,20 @@ function GoalsPage() {
                                 Done when: {s.definition_of_done}
                               </p>
                             )}
+                            {!scheduledTask && s.target_date && <p className="mt-1 text-xs text-muted-foreground">Target: {s.target_date}</p>}
+                            {scheduledTask && (
+                              <p className="mt-1 text-xs text-primary">
+                                {cadenceLabel(scheduledTask)} · From {scheduledTask.due_date} · {scheduledTask.estimated_minutes} min
+                              </p>
+                            )}
                           </div>
 
                           <div className="flex items-center gap-1">
-                            {!s.is_completed && (
+                            {scheduledTask ? (
+                              <Button asChild size="sm" variant="ghost" className="h-7 px-2 text-[11px] text-primary">
+                                <Link to="/today"><ArrowRight className="size-3" /> Today</Link>
+                              </Button>
+                            ) : !s.is_completed && (
                               <Button
                                 size="sm"
                                 variant="ghost"
@@ -490,7 +524,7 @@ function GoalsPage() {
                             </button>
                           </div>
                         </div>
-                      ))}
+                      ); })}
 
                       {/* Add Milestone Manually Form */}
                       {addingMilestoneGoalId === goal.id ? (
@@ -532,6 +566,14 @@ function GoalsPage() {
                           <Button
                             variant="outline"
                             size="sm"
+                            disabled={busyGoal !== null}
+                            onClick={() => runMilestones(goal)}
+                          >
+                            <Sparkles className="size-4 text-accent" /> AI milestones
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
                             className="flex-1"
                             onClick={() => setAddingMilestoneGoalId(goal.id)}
                           >
@@ -541,7 +583,7 @@ function GoalsPage() {
                             variant="outline"
                             size="sm"
                             className="flex-1"
-                            disabled={busyGoal === goal.id}
+                            disabled={busyGoal !== null}
                             onClick={() =>
                               runBreakdown(
                                 goal.id,
@@ -556,7 +598,7 @@ function GoalsPage() {
                             ) : (
                               <Sparkles className="size-4 text-accent" />
                             )}
-                            {items.length === 0 ? "Break down with AI" : "AI Milestone Ideas"}
+                            {items.length === 0 ? "Break down with AI" : "Add AI steps"}
                           </Button>
                         </div>
                       )}
@@ -569,6 +611,21 @@ function GoalsPage() {
         })}
       </div>
 
+      <Dialog open={confirmingMilestone !== null} onOpenChange={(open) => !open && setConfirmingMilestone(null)}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader><DialogTitle>Confirm outcome</DialogTitle></DialogHeader>
+          <p className="text-sm font-medium">{confirmingMilestone?.title}</p>
+          <p className="text-sm text-muted-foreground">{confirmingMilestone?.definition_of_done || "Confirm that this outcome has been achieved."}</p>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setConfirmingMilestone(null)}>Not yet</Button>
+            <Button onClick={async () => {
+              if (!confirmingMilestone) return;
+              await updateSubtask.mutateAsync({ id: confirmingMilestone.id, patch: { is_completed: true, completed_at: new Date().toISOString() } });
+              setConfirmingMilestone(null);
+            }}>Confirm reached</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
       <EditGoalDialog
         goal={editingGoal}
         open={editingGoal !== null}

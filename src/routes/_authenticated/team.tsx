@@ -273,7 +273,7 @@ function TeamPage() {
   // 2. Authentication Requirement Gate
   if (!authUser) {
     return (
-      <div className="space-y-6 py-6 sm:py-10">
+      <div className="space-y-6">
         <header className="space-y-2 text-center sm:text-left">
           <div className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
             <Users2 className="size-3.5" aria-hidden="true" />
@@ -313,7 +313,7 @@ function TeamPage() {
             </div>
             <div className="rounded-xl border border-border/60 bg-surface/60 p-3 space-y-1">
               <span className="text-xs font-bold text-foreground flex items-center gap-1.5">
-                <Flame className="size-3.5 text-amber-500" aria-hidden="true" /> Partner Cheers
+                <Flame className="size-3.5 text-warning" aria-hidden="true" /> Partner Cheers
               </span>
               <p className="text-[11px] text-muted-foreground leading-snug">
                 Boost teammates daily to keep streaks blazing.
@@ -348,7 +348,7 @@ function TeamPage() {
   // 3. Authenticated but No Squads Joined Yet
   if (!squad || squads.length === 0) {
     return (
-      <div className="space-y-6 py-6 sm:py-8">
+      <div className="space-y-6">
         <header className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
             <h1 className="font-display text-2xl font-bold tracking-tight text-foreground">

@@ -12,12 +12,17 @@ import {
   WifiOff,
 } from "lucide-react";
 import { getDb } from "@/lib/db/pglite";
+import { useNavigate } from "@tanstack/react-router";
+import { useQueryClient } from "@tanstack/react-query";
+import { clearDemoData, isDemoActive, loadDemoData } from "@/lib/ascend/demo";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
+      { property: "og:image", content: "https://stellar-mind-journal.lovable.app/og-image.jpg" },
+      { name: "twitter:image", content: "https://stellar-mind-journal.lovable.app/og-image.jpg" },
       { title: "Ascend — Daily Personal Growth Tracker" },
       {
         name: "description",
@@ -158,6 +163,8 @@ function Landing() {
             Sign in / Sync
           </Link>
         </div>
+        <DemoButton />
+
 
         <div className="mt-16 grid w-full gap-3 sm:grid-cols-3" suppressHydrationWarning>
           {FEATURES.map((f, i) => (
@@ -190,9 +197,55 @@ function Landing() {
           ))}
         </ul>
       </main>
-      <footer className="relative pb-10 text-center text-xs text-muted-foreground">
-        Ascend — a calm place for the daily climb.
+      <footer className="relative space-y-1 pb-10 text-center text-xs text-muted-foreground">
+        <p>Ascend — a calm place for the daily climb.</p>
+        <p>
+          Built by Gitesh Wankhede ·{" "}
+          <a className="underline hover:text-foreground" href="https://github.com/" target="_blank" rel="noreferrer">
+            GitHub
+          </a>{" "}
+          ·{" "}
+          <a className="underline hover:text-foreground" href="https://www.linkedin.com/" target="_blank" rel="noreferrer">
+            LinkedIn
+          </a>
+        </p>
       </footer>
     </div>
+  );
+}
+
+function DemoButton() {
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const [active, setActive] = useState(false);
+  const [busy, setBusy] = useState(false);
+  useEffect(() => setActive(isDemoActive()), []);
+
+  async function onClick() {
+    setBusy(true);
+    try {
+      if (active) {
+        await clearDemoData();
+        setActive(false);
+        await queryClient.invalidateQueries();
+      } else {
+        await loadDemoData();
+        await queryClient.invalidateQueries();
+        await navigate({ to: "/today" });
+      }
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={busy}
+      className="mt-4 text-sm font-medium text-primary underline-offset-4 hover:underline disabled:opacity-60"
+    >
+      {busy ? "One moment…" : active ? "Clear sample data" : "Try with sample data"}
+    </button>
   );
 }

@@ -2,7 +2,6 @@ import { useMemo, useRef, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { ChevronLeft, ChevronRight, Download, Sprout } from "lucide-react";
-import { toPng } from "html-to-image";
 import { useGoals, useSubtasks, useTasks } from "@/lib/ascend/queries";
 import { todayISO } from "@/lib/ascend/cadence";
 import { RangeSelector } from "@/components/ascend/RangeSelector";
@@ -44,7 +43,7 @@ function TreePage() {
     if (!canvasRef.current) return;
     try {
       const backgroundColor = getComputedStyle(document.documentElement).getPropertyValue("--background").trim();
-      const url = await toPng(canvasRef.current, { pixelRatio: 2, backgroundColor });
+      const url = await (await import("html-to-image")).toPng(canvasRef.current, { pixelRatio: 2, backgroundColor });
       const link = document.createElement("a");
       link.download = `ascend-growth-season-${season.index + 1}-${todayISO()}.png`;
       link.href = url;

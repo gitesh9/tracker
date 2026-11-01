@@ -44,7 +44,7 @@ export default defineConfig({
       "react/jsx-dev-runtime",
     ],
   },
-  server: { host: "0.0.0.0", port: 3000, strictPort: true, allowedHosts: true },
+  server: { host: "0.0.0.0", port: 3000, allowedHosts: true },
   preview: {
     host: "0.0.0.0",
     port: process.env["PORT"] ? parseInt(process.env["PORT"], 10) : 3000,

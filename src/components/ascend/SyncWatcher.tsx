@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { AnimatePresence, motion } from "motion/react";
-import { Cloud, CloudOff, RefreshCw } from "lucide-react";
+import { Cloud, CloudOff } from "lucide-react";
 import { toast } from "sonner";
 import { flushQueue, isOffline, pullRemote, queueSize } from "@/lib/ascend/offline";
 import { mirrorLocalDataToDb, reloadTablesFromDb } from "@/lib/ascend/local-store";
@@ -109,20 +109,20 @@ export function SyncWatcher() {
     const t = window.setTimeout(() => setSlowSync(true), 1200);
     return () => window.clearTimeout(t);
   }, [syncing]);
-  const visible = offline || (pending > 0 && !syncing) || slowSync;
+  const visible = offline || pending > 0 || slowSync;
 
   return (
     <AnimatePresence>
       {visible && (
         <motion.div
-          initial={{ opacity: 0, y: -12 }}
+          initial={{ opacity: 0, y: -4 }}
           animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -12 }}
-          className="fixed inset-x-0 top-3 z-50 mx-auto flex w-fit items-center gap-2 rounded-full border border-border bg-surface/90 px-4 py-1.5 text-xs backdrop-blur shadow-sm"
+          exit={{ opacity: 0, y: -4 }}
+          transition={{ duration: 0.15 }}
+          role="status"
+          className="fixed bottom-20 left-1/2 z-30 flex max-w-[calc(100%-2rem)] -translate-x-1/2 items-center gap-2 rounded-lg border border-border bg-surface/95 px-3 py-2 text-xs shadow-sm md:bottom-4"
         >
-          {syncing ? (
-            <RefreshCw className="size-3.5 animate-spin text-primary" />
-          ) : offline ? (
+          {offline ? (
             <CloudOff className="size-3.5 text-accent" />
           ) : (
             <Cloud className="size-3.5 text-primary" />
@@ -134,7 +134,7 @@ export function SyncWatcher() {
                 ? pending > 0
                   ? `Offline — ${pending} change${pending === 1 ? "" : "s"} saved on this device`
                   : "Offline mode — everything still works"
-                : `Sending ${pending} change${pending === 1 ? "" : "s"}`}
+                : `${pending} change${pending === 1 ? "" : "s"} waiting to sync`}
           </span>
         </motion.div>
       )}

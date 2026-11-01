@@ -16,7 +16,7 @@ export function useTaskSubtasks(taskId: string | null | undefined) {
   return useMemo(() => {
     const items: Subtask[] = taskId
       ? all
-          .filter((s) => s.task_id === taskId)
+          .filter((s) => s.task_id === taskId && !s.goal_id)
           .sort((a, b) => (a.position ?? 0) - (b.position ?? 0))
       : [];
     return {

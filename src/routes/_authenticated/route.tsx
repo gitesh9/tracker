@@ -21,9 +21,11 @@ import { hydrateLocalStore } from "@/lib/ascend/local-store";
 import { getAuthSessionUser, useReminders } from "@/lib/ascend/queries";
 import { runReminderTick } from "@/lib/ascend/notifications";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { PageLoading } from "@/components/ascend/PageLoading";
 
 export const Route = createFileRoute("/_authenticated")({
   ssr: false,
+  pendingComponent: () => <PageLoading fullScreen />,
   beforeLoad: async () => {
     // Load this device's data into memory once, before any screen reads it.
     // Do not open an empty task cache while durable history is still loading.
@@ -261,7 +263,7 @@ function AppShell() {
         </nav>
       </header>
 
-      <main className="relative mx-auto w-full max-w-3xl px-3 pb-28 pt-4 sm:px-6 md:pb-12 transform-gpu">
+      <main className="ascend-page relative mx-auto w-full max-w-3xl px-4 pb-28 pt-6 sm:px-6 sm:pt-8 md:pb-12">
         <PageTransition pathname={pathname}>
           <Outlet />
         </PageTransition>

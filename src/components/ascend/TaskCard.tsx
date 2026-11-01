@@ -12,10 +12,12 @@ import {
   Timer,
   Trash2,
   Zap,
+  Target,
 } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { iconFor } from "@/lib/ascend/icons";
-import { useTasks } from "@/lib/ascend/queries";
+import { useTasks, useGoals } from "@/lib/ascend/queries";
+import { Button } from "@/components/ui/button";
 import { TaskSubtasks, useTaskSubtasks } from "./TaskSubtasks";
 import { cadenceLabel, isCompletedOn, weekProgress } from "@/lib/ascend/cadence";
 import { type Task } from "@/lib/ascend/types";
@@ -66,6 +68,8 @@ function TaskCardComponent({
   const { done: stepsDone, total: stepsTotal } = useTaskSubtasks(task.id);
   const [showSteps, setShowSteps] = useState(false);
   const { data: allTasks = [] } = useTasks();
+  const { data: goals = [] } = useGoals();
+  const parentGoal = goals.find((g) => g.id === task.goal_id);
   const linkedTasks = (task.linked_task_ids ?? [])
     .map((id) => allTasks.find((t) => t.id === id))
     .filter((t): t is Task => Boolean(t));
@@ -226,6 +230,11 @@ function TaskCardComponent({
             )}
           </div>
 
+          {parentGoal && (
+            <Button asChild variant="link" size="sm" className="mt-1 h-auto max-w-full justify-start whitespace-normal px-0 py-1 text-xs text-primary" onClick={(e) => e.stopPropagation()}>
+              <Link to="/goals" search={{ goal: parentGoal.id }}><Target className="size-3 shrink-0" /> <span className="min-w-0 break-words">{parentGoal.title}</span></Link>
+            </Button>
+          )}
           {task.definition_of_done && (
             <p className="mt-2 rounded-lg bg-muted/40 px-2 py-1 text-xs text-muted-foreground border border-border/40">
               <strong className="text-foreground/80 font-medium">Done when:</strong>{" "}

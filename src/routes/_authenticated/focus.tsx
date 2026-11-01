@@ -41,6 +41,7 @@ import { Switch } from "@/components/ui/switch";
 import { LinkedTaskFocusCard } from "@/components/ascend/LinkedTaskFocusCard";
 import { TaskFocusGuide } from "@/components/ascend/TaskFocusGuide";
 import { cn } from "@/lib/utils";
+import { EmptyState } from "@/components/ascend/EmptyState";
 
 export type ModeKey = "pomodoro" | "deep" | "sprint";
 export type PhaseKey = "focus" | "break" | "longBreak";
@@ -539,7 +540,7 @@ function FocusPage() {
   const currentBlockInCycle = (completedFocusBlocks % (configs.longBreakInterval || 4)) + 1;
 
   return (
-    <div className="space-y-7 max-w-5xl mx-auto">
+    <div className="space-y-6 max-w-5xl mx-auto">
       {/* Accessible Live Region for Screen Readers */}
       <div className="sr-only" role="status" aria-live="polite" aria-atomic="true">
         {screenReaderAnnouncement}
@@ -548,7 +549,7 @@ function FocusPage() {
       {/* Header with Title, Metrics & Controls */}
       <header className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <h1 className="font-display text-2xl font-semibold tracking-tight text-foreground">
               Focus &amp; Flow
             </h1>
@@ -846,9 +847,7 @@ function FocusPage() {
 
         <div className="space-y-2 max-h-64 overflow-y-auto pr-1">
           {selectableTasks.length === 0 && (
-            <p className="text-xs text-muted-foreground py-4 text-center">
-              No matching tasks found. Create a task in Today or Focus freely.
-            </p>
+            <EmptyState icon={ListTodo} title="No matching tasks" />
           )}
 
           {selectableTasks.map((t) => {

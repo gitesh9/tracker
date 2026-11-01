@@ -41,6 +41,7 @@ import { TaskCard } from "@/components/ascend/TaskCard";
 import { DelayDialog } from "@/components/ascend/DelayDialog";
 import { EditTaskDialog } from "@/components/ascend/EditTaskDialog";
 import { AiCoachDialog } from "@/components/ascend/AiCoachDialog";
+import { WelcomeDialog } from "@/components/ascend/WelcomeDialog";
 import { Button } from "@/components/ui/button";
 import { localDB } from "@/lib/ascend/local-store";
 import { cn } from "@/lib/utils";
@@ -202,6 +203,7 @@ function TodayPage() {
 
   return (
     <div className="space-y-6">
+      {!isLoading && <WelcomeDialog hasTasks={tasks.some((t) => !t.id.startsWith("sample-") || (t.completed_dates ?? []).length > 0)} />}
       <header className="flex items-start justify-between gap-4">
         <div className="min-w-0">
           <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
@@ -456,7 +458,7 @@ function TodayPage() {
               ))}
             </AnimatePresence>
             {active.length === 0 && (
-              <div className="rounded-2xl border border-dashed border-border p-8 text-center">
+              <div className="flex min-h-40 flex-col items-center justify-center gap-1 py-8 text-center">
                 {selectedCategory !== "all" && rawCount > 0 ? (
                   <>
                     <p className="text-sm text-muted-foreground">
